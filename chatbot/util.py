@@ -22,7 +22,7 @@ from sklearn.feature_extraction.text import TfidfTransformer
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 import tensorflow as tf
-
+import pickle
 
 # Initialise global variables
 label_ref = {'agree': 0, 'disagree': 1, 'discuss': 2, 'unrelated': 3}
@@ -301,3 +301,13 @@ def save_predictions(pred, file):
         writer.writeheader()
         for instance in pred:
             writer.writerow({'Stance': label_ref_rev[instance]})
+
+
+def storeVector(vector, path):
+    pickle.dump(vector, open(path,"wb"))
+
+def loadVector(path):
+    infile = open(path,'rb')
+
+    vec = pickle.load(infile)
+    return vec

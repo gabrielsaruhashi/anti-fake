@@ -6,6 +6,7 @@ from util import *
 from webscrape_helper import azureClaimSearch
 import time
 import random
+import pickle
 
 import os
 
@@ -19,7 +20,8 @@ sess = tf.Session()
 #     global sess
 #     load_model(sess)
 #     print("Loaded model...")
-    
+
+
 # Getting Parameters
 def getParameters():
     parameters = []
@@ -56,8 +58,7 @@ def runModel(sess, keep_prob_pl, predict, features_pl, bow_vectorizer, tfreq_vec
     print("Predictions complete.")
     return test_pred
 
-def calculateScore():
-    
+def trainVectors():
     file_train_instances = "train_stances.csv"
     file_train_bodies = "train_bodies.csv"
     file_test_instances = "test_stances_unlabeled.csv"
@@ -76,10 +77,21 @@ def calculateScore():
     # Process data sets
     train_set, train_stances, bow_vectorizer, tfreq_vectorizer, tfidf_vectorizer = \
         pipeline_train(raw_train, raw_test, lim_unigram=lim_unigram)
-    feature_size = len(train_set[0])
-    test_set = pipeline_test(raw_test, bow_vectorizer, tfreq_vectorizer, tfidf_vectorizer)
+    
+    storeVector(bow_vectorizer, "bow.pickle")
+    storeVector(tfreq_vectorizer, "tfreq.pickle")
+    storeVector(tfidf_vectorizer, "tfidf.pickle")
 
-    # Define model
+def calculateScore():
+    
+    # trainVectors()
+    bow_vectorizer = loadVector("bow.pickle")
+    tfreq_vectorizer = loadVector( "tfreq.pickle")
+    tfidf_vectorizer = loadVector("tfidf.pickle")
+    # hardcode the number of features
+    feature_size = 10001
+    target_size = 4
+    hidden_size = 100
 
     # Create placeholders
     features_pl = tf.placeholder(tf.float32, [None, feature_size], 'features')
@@ -245,7 +257,6 @@ def webhook():
 
 # run the app
 if __name__ == '__main__':
-    init()
     print(("* Loading Keras model and Flask starting server..."
 "please wait until server has fully started"))
     app.run(debug=True, threaded=True)
