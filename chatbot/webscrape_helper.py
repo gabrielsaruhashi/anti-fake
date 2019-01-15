@@ -8,6 +8,7 @@ from newspaper import Article
 import nltk
 import requests
 from IPython.display import display, HTML
+from util import stop_words
 
 global_df = pd.DataFrame()
 eventregistry_api = 'aa1174a5-a633-492d-a182-28d59fc28a34'
@@ -127,9 +128,11 @@ def generateClaimCSV(claim):
 # generateClaimCSV(claim)
 
 def azureClaimSearch(claim):
-
+    start_time = time.time()
     # tokenize string
     tokens = claim.split()
+    tokens = [word for word in tokens if word.lower() not in stop_words]
+    
     webscrapeMain(tokens, CLAIM_CHECK)
     # azure_pd = pd.DataFrame()
 
@@ -150,15 +153,4 @@ def azureClaimSearch(claim):
     # generate csv claim to run against the model
     generateClaimCSV(claim)
 
-    # rows = "\n".join(["""<tr>
-    #                    <td><a href=\"{0}\">{1}</a></td>
-    #                    <td>{2}</td>
-    #                  </tr>""".format(v["url"],v["name"],v["snippet"]) \
-    #               for v in search_results["webPages"]["value"]])
-    # display(HTML("<table>{0}</table>".format(rows)))
-
-    
-# run
-# url = 'https://www.washingtonpost.com/news/powerpost/wp/2018/01/11/joe-arpaio-is-back-and-brought-his-undying-obama-birther-theory-with-him/?utm_term=.6e970c87deba'
-# webscrapeMain(url)
-# print("Finished scraping for articles related to the article")
+    print("Webscraping time--- %s seconds ---" % (time.time() - start_time))

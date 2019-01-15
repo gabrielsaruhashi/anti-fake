@@ -7,6 +7,7 @@ from webscrape_helper import azureClaimSearch
 import time
 import random
 import pickle
+# from ..rep_model.REP import * 
 
 import os
 
@@ -67,15 +68,13 @@ def trainVectors():
     # Initialise hyperparameters
     r = random.Random()
     lim_unigram = 5000
-    target_size = 4
-    hidden_size = 100
 
     # Load data sets
     raw_train = FNCData(file_train_instances, file_train_bodies)
     raw_test = FNCData(file_test_instances, file_test_bodies)
 
     # Process data sets
-    train_set, train_stances, bow_vectorizer, tfreq_vectorizer, tfidf_vectorizer = \
+    _, _, bow_vectorizer, tfreq_vectorizer, tfidf_vectorizer = \
         pipeline_train(raw_train, raw_test, lim_unigram=lim_unigram)
     
     storeVector(bow_vectorizer, "bow.pickle")
@@ -83,11 +82,12 @@ def trainVectors():
     storeVector(tfidf_vectorizer, "tfidf.pickle")
 
 def calculateScore():
-    
+    # call train vectors only at the first time
     # trainVectors()
     bow_vectorizer = loadVector("bow.pickle")
     tfreq_vectorizer = loadVector( "tfreq.pickle")
     tfidf_vectorizer = loadVector("tfidf.pickle")
+
     # hardcode the number of features
     feature_size = 10001
     target_size = 4
@@ -116,7 +116,6 @@ def calculateScore():
 
     
     '''PREDICTION'''
-    start_time = time.time()
     print("Now running predictions...")
 
     # THIS is the info from Henry
@@ -126,14 +125,12 @@ def calculateScore():
     raw_test = FNCData(userClaims, userBodies)
     # TODO hotload the vector representations instead of calculating every time
     test_set = pipeline_test(raw_test, bow_vectorizer, tfreq_vectorizer, tfidf_vectorizer)
-    # idk what this does really
+
     test_feed_dict = {features_pl: test_set, keep_prob_pl: 1.0}
     # run predictions
     test_pred = sess.run(predict, feed_dict=test_feed_dict)
     # timing
     print("Predictions complete.")
-    save_predictions(test_pred, "predictions.csv")
-
     return test_pred
 
 
@@ -159,7 +156,7 @@ def predict():
             score += 1
         elif stance == 1 or stance == 2:
             score -= 1
-    print("Prediction in--- %s seconds ---" % (time.time() - start_time))
+    print("Total response time--- %s seconds ---" % (time.time() - start_time))
 
     return sendResponse({"claim": claim, "score": score,  \
     "sources": ['https://www.washingtonpost.com/news/powerpost/wp/2018/01/11/joe-arpaio-is-back-and-brought-his-undying-obama-birther-theory-with-him/?utm_term=.3c88c56fee34']})

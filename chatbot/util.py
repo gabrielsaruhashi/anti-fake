@@ -55,6 +55,8 @@ stop_words = [
         "with", "within", "without", "would", "yet", "you", "your", "yours", "yourself", "yourselves"
         ]
 
+def returnStopWords():
+    return stop_words
 
 # Define data class
 class FNCData:

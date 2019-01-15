@@ -66,15 +66,13 @@ def avgStance(opinions):
             if op.sourceName in globals.sources:
                 finalStance -= globals.sources.get(op.sourceName).reputation
         #agree
-        if op.stance == 1:
+        elif op.stance == 1:
             if op.sourceName in globals.sources:
                 finalStance += globals.sources.get(op.sourceName).reputation
-        #unrelated
-        #if op.stance == 2 do nothing
-        #discuss
-        if op.stance == 3:
+        # discuss
+        elif op.stance == 2:
             if op.sourceName in globals.sources:
-                finalStance += globals.sources.get(op.sourceName).reputation/4
+                finalStance -= globals.sources.get(op.sourceName).reputation/4
     finalStance = finalStance/len(opinions)
     return finalStance
 
