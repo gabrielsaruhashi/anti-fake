@@ -1,12 +1,162 @@
 # import flask dependencies
 from flask import Flask
 from flask import jsonify, request, make_response
+import tensorflow as tf
+from util import *
+from webscrape_helper import azureClaimSearch
+import time
+import random
+
+import os
+
+os.environ['KMP_DUPLICATE_LIB_OK']='True'
+
 # initialize the flask app
 app = Flask(__name__)
+sess = tf.Session()
+
+# def init():
+#     global sess
+#     load_model(sess)
+#     print("Loaded model...")
+    
+# Getting Parameters
+def getParameters():
+    parameters = []
+    # parameters.append(request.args.get('male'))
+    return parameters
+
+# Cross origin support
+def sendResponse(responseObj):
+    response = jsonify(responseObj)
+    response.headers.add('Access-Control-Allow-Origin', '*')
+    response.headers.add('Access-Control-Allow-Methods', 'GET')
+    response.headers.add('Access-Control-Allow-Headers', 'accept,content-type,Origin,X-Requested-With,Content-Type,access_token,Accept,Authorization,source')
+    response.headers.add('Access-Control-Allow-Credentials', True)
+    return response
+
+
+def runModel(sess, keep_prob_pl, predict, features_pl, bow_vectorizer, tfreq_vectorizer, tfidf_vectorizer):
+    start_time = time.time()
+    print("Now running predictions...")
+
+    # THIS is the info from Henry
+    userClaims = "../webscrape/claims.csv"
+    userBodies = "../webscrape/bodies.csv"
+    # parse that info
+    raw_test = FNCData(userClaims, userBodies)
+    # need more stuff for this
+    test_set = pipeline_test(raw_test, bow_vectorizer, tfreq_vectorizer, tfidf_vectorizer)
+    # idk what this does really
+    test_feed_dict = {features_pl: test_set, keep_prob_pl: 1.0}
+    # run predictions
+    test_pred = sess.run(predict, feed_dict=test_feed_dict)
+    # timing
+    print("generate test_set--- %s seconds ---" % (time.time() - start_time))
+    print("Predictions complete.")
+    return test_pred
+
+def calculateScore():
+    
+    file_train_instances = "train_stances.csv"
+    file_train_bodies = "train_bodies.csv"
+    file_test_instances = "test_stances_unlabeled.csv"
+    file_test_bodies = "test_bodies.csv"
+
+    # Initialise hyperparameters
+    r = random.Random()
+    lim_unigram = 5000
+    target_size = 4
+    hidden_size = 100
+
+    # Load data sets
+    raw_train = FNCData(file_train_instances, file_train_bodies)
+    raw_test = FNCData(file_test_instances, file_test_bodies)
+
+    # Process data sets
+    train_set, train_stances, bow_vectorizer, tfreq_vectorizer, tfidf_vectorizer = \
+        pipeline_train(raw_train, raw_test, lim_unigram=lim_unigram)
+    feature_size = len(train_set[0])
+    test_set = pipeline_test(raw_test, bow_vectorizer, tfreq_vectorizer, tfidf_vectorizer)
+
+    # Define model
+
+    # Create placeholders
+    features_pl = tf.placeholder(tf.float32, [None, feature_size], 'features')
+    keep_prob_pl = tf.placeholder(tf.float32)
+
+    # Infer batch size
+    batch_size = tf.shape(features_pl)[0]
+
+    # Define multi-layer perceptron
+    hidden_layer = tf.nn.dropout(tf.nn.relu(tf.contrib.layers.linear(features_pl, hidden_size)), keep_prob=keep_prob_pl)
+    logits_flat = tf.nn.dropout(tf.contrib.layers.linear(hidden_layer, target_size), keep_prob=keep_prob_pl)
+    logits = tf.reshape(logits_flat, [batch_size, target_size])
+
+    # Define prediction
+    softmaxed_logits = tf.nn.softmax(logits)
+    predict = tf.argmax(softmaxed_logits, 1)
+
+    # LOAD MODEL
+    sess = tf.Session()
+    print("Loading checkpoint")
+    load_model(sess)
+
+    
+    '''PREDICTION'''
+    start_time = time.time()
+    print("Now running predictions...")
+
+    # THIS is the info from Henry
+    userClaims = "claims.csv"
+    userBodies = "bodies.csv"
+    # parse that info
+    raw_test = FNCData(userClaims, userBodies)
+    # TODO hotload the vector representations instead of calculating every time
+    test_set = pipeline_test(raw_test, bow_vectorizer, tfreq_vectorizer, tfidf_vectorizer)
+    # idk what this does really
+    test_feed_dict = {features_pl: test_set, keep_prob_pl: 1.0}
+    # run predictions
+    test_pred = sess.run(predict, feed_dict=test_feed_dict)
+    # timing
+    print("Predictions complete.")
+    save_predictions(test_pred, "predictions.csv")
+
+    return test_pred
+
+
+
+
+# API for prediction
+@app.route("/predict", methods=["GET"])
+def predict():
+    start_time = time.time()
+    # init()
+    claim = request.args.get('claim')
+    # parameters = getParameters()
+
+    # webscrape
+    azureClaimSearch(claim)
+
+    # run model
+    stances = calculateScore()
+    score = 0
+    for stance in stances:
+        # agree
+        if stance == 0:
+            score += 1
+        elif stance == 1 or stance == 2:
+            score -= 1
+    print("Prediction in--- %s seconds ---" % (time.time() - start_time))
+
+    return sendResponse({"claim": claim, "score": score,  \
+    "sources": ['https://www.washingtonpost.com/news/powerpost/wp/2018/01/11/joe-arpaio-is-back-and-brought-his-undying-obama-birther-theory-with-him/?utm_term=.3c88c56fee34']})
+
+
 # default route
 @app.route('/')
 def index():
-    return 'Hello World!!!!!!'
+    return 'Hello world'
 
 # function for responses
 def results():
@@ -90,11 +240,12 @@ def results():
 @app.route('/webhook', methods=['GET', 'POST'])
 def webhook():
     # return response
-    
-    
     return make_response(jsonify(results()))
 
 
 # run the app
 if __name__ == '__main__':
-    app.run(debug=True)
+    init()
+    print(("* Loading Keras model and Flask starting server..."
+"please wait until server has fully started"))
+    app.run(debug=True, threaded=True)

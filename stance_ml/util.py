@@ -267,7 +267,7 @@ def pipeline_test(test, bow_vectorizer, tfreq_vectorizer, tfidf_vectorizer):
     return test_set
 
 
-def load_model(sess):
+def load_model(sess, path='./model/model.checkpoint'):
 
     """
 
@@ -279,7 +279,7 @@ def load_model(sess):
     """
 
     saver = tf.train.Saver()
-    saver.restore(sess, './model/model.checkpoint')
+    saver.restore(sess, path)
 
 
 def save_predictions(pred, file):
