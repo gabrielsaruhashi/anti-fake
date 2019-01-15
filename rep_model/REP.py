@@ -4,11 +4,8 @@ import pandas as pd
 
 # DEFAULTSFILEPATH = '/Users/Joshua_Freier/hackMIT/FakeBananas/rep/reputationDict.csv'
 # NORMALFILEPATH = '/Users/Joshua_Freier/hackMIT/FakeBananas/rep/reputations.csv'
-FILEPATH = "./table_reputation.csv"
+FILEPATH = "./default_rep.csv"
 
-class globals:
-    # sources = {}
-    sources = {'New York Times' : source('New York Times', 1)}
 
 class opinion:
     def __init__(self, sourceName, articleId, stance):
@@ -26,16 +23,22 @@ class source:
         self.articles = articles
         self.size = size
     def addArticle(self, articleId, articleValidity):
+        self.reputation = (self.reputation*self.size+articleValidity)/(self.size+1)
         if not articleId in self.articles:
             self.reputation = (self.reputation*self.size+articleValidity)/(self.size+1)
             self.articles.append(articleId)
             self.size += 1
 
+class globals:
+    # sources = {}
+    sources = {'New York Times' : source('New York Times', 1, 300, 0)}
+
+
 def returnOutput(mlOut):
     """takes the output of our ml and turns it into a final stances
     :param mlOut: a panda dataframe
     """
-    loadReputations(NORMALFILEPATH)
+    loadReputations(FILEPATH)
     for index, row in mlOut.iterrows():
         stance = row['Stances']
         articleId = row['BodyID']
@@ -47,7 +50,7 @@ def returnOutput(mlOut):
             opinions.append(op)
     stance = avgStance(opinions)
     updateRep(opinions)
-    writeToDisk(NORMALFILEPATH)
+    # writeToDisk(NORMALFILEPATH)
     return stance
 
 def avgStance(opinions):
@@ -121,18 +124,32 @@ def loadDefaultRepsFromDisk(filepath):
 #            print(row['source'])
             globals.sources[row['source']] = source(row['source'], row['reputation'], [], 100)
 
-def writeToDisk(filepath):
-    with open(filepath, 'w') as csvfile:
-        fieldnames = ['source', 'reputation', 'articles', 'size']
+# def writeToDisk(filepath):
+#     with open(filepath, 'w') as csvfile:
+#         fieldnames = ['source', 'reputation', 'articles', 'size']
+#         writer = csv.DictWriter(csvfile, fieldnames = fieldnames)
+#         writer.writeheader()
+#         for k, v in globals.sources.items():
+#             if(type(v) == source):
+#                 writer.writerow({'source': k, 'reputation': v.reputation, 'articles' : v.articles, 'size' : v.size})
+#             else:
+#                 print(source)def writeToDisk():	def loadDefaultRepsFromDisk(filepath):
+#     with open('rep/reputationDict.csv', 'w') as csvfile:	    with open(filepath) as csvfile:
+#         fieldnames = ['source', 'reputation']	        fieldnames = ['source', 'reputation']
+#         writer = csv.DictWriter(csvfile, fieldnames=fieldnames)	        reader = csv.DictReader(csvfile, fieldnames = fieldnames)
+#         for row in reader:
+# #            print(row['source'])
+#             globals.sources[row['source']] = source(row['source'], row['reputation'], [], 100)
+
+def writeToDisk():
+    with open('./reputationDict.csv', 'w') as csvfile:
+        fieldnames = ['source', 'reputation']
         writer = csv.DictWriter(csvfile, fieldnames = fieldnames)
-        writer.writeheader()
-        for k, v in globals.sources.items():
-            if(type(v) == source):
-                writer.writerow({'source': k, 'reputation': v.reputation, 'articles' : v.articles, 'size' : v.size})
-            else:
-                print(source)
+        writer.writeheader()	   
+        for k in globals.sources.keys():	  
+            writer.writerow({'source': k, 'reputation':
+                globals.sources.get(k).reputation})
 
 
-
-loadDefaultRepsFromDisk(FILEPATH)
-writeToDisk(NORMALFILEPATH)
+# loadDefaultRepsFromDisk(FILEPATH)
+# writeToDisk()

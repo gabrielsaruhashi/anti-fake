@@ -1,0 +1,51 @@
+source,reputation
+seattle times,0.75
+trump,-1
+huffington post,-0.55
+bbc,0.8
+New York Times,1
+denver post,0.66
+cbs,0
+people magazine,-0.4
+thinkprogress,0.45
+washington post,0.64
+nbc,-0.1
+usa today,0.27
+economist,1
+associated press,0.9
+abc,-0.25
+the daily show,0
+al jazeera,0.85
+fox,-0.5
+source,reputation
+reuters,0.9
+politico,0.75
+blaze,-0.55
+occupy democrats,-6
+the sean hannity show,-0.5
+the colbert report,0.3
+mother jones,0.65
+latimes,0.76
+google news,0.05
+dallas morning news,0.75
+guardian,0.77
+slate,0.4
+yahoo,-0.6
+the rush limbaugh show,-0.3
+cnn,0.5
+breitbart,-0.92
+bloomberg,0.7
+wall street journal,0.76
+the atlantic,0.23
+the blaze,-0.45
+infowars,-0.7
+npr,0.9
+msnbc,-0.2
+the onion,-0.6
+pbs,0.8
+local,0.75
+buzzfeed,-0.96
+drudge report,-0.1
+kansas city star,0.5
+time,0.6
+the ed shultz show,0.5
