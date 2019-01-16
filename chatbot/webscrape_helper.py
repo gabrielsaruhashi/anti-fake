@@ -69,25 +69,28 @@ def getArticles(keywords):
     local_df = pd.DataFrame()
     local_body_df = pd.DataFrame()
     index = 0
-    body_count = 0
     
-#     print(body_count)
     for article in res:
-        data = {
-            'source': article['source']['title'].lower(),
-            'url' : article['url'],
-            'text' : article['body']
-        }
-        
-        body = {
-            'articleBody': article['body'],
-            'Body ID': body_count
-        }
-        
-        local_body_df = pd.concat([local_body_df, pd.DataFrame(body, index=[index])])
-        local_df = pd.concat([local_df, pd.DataFrame(data,index=[index])])
-#         index += 1
-        body_count += 1
+        try:
+            art_id = int(article['uri'])
+            #print(art_id)
+            data = {
+                'source': article['source']['title'].lower(),
+                'url' : article['url'],
+                'text' : article['body'],
+                'Body ID': art_id
+            }
+            
+            body = {
+                'articleBody': article['body'],
+                'Body ID': art_id
+            }
+            
+            local_body_df = pd.concat([local_body_df, pd.DataFrame(body, index=[index])])
+            local_df = pd.concat([local_df, pd.DataFrame(data,index=[index])])
+        except ValueError as ex:
+            print("Ignoring article with non-int article_id")
+        index += 1
     
     # append to global dataframe
     global_df = pd.concat([global_df,local_df])
@@ -125,7 +128,7 @@ def webscrapeMain(evidence, mode):
     print("The keywords are: {}".format(kws))
 
     getArticles(kws)
-    print(bodies_df)
+    # print(bodies_df)
     global_df = global_df.reset_index(drop=True)
     global_df.to_csv('articles.csv')
     bodies_df.to_csv('bodies.csv')
@@ -136,13 +139,14 @@ def generateClaimCSV(claim):
     out = pd.DataFrame()
     # get the total number of articles
     claims = [claim] * len(data.index)
+
+    body_ids = data[['Body ID']]
     
 #     claims = pd.DataFrame(claim)
     out['id'] = range(len(data.index))
     out['Headline'] = claims
-    out['Body ID'] = range(len(data.index))
+    out['Body ID'] = body_ids
     out.to_csv('claims.csv')
-    print("Succesfully generated claims")
 
 # claim = 'Obama is not American'
 # generateClaimCSV(claim)

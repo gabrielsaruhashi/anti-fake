@@ -33,20 +33,13 @@ class source:
   
         self.reputation = (self.reputation*self.size+articleValidity)/(self.size+1)
 
-        print(articleId)
-        print(type(articleId))
-        print(self.articles)
-        print(type(self.articles))
-        if not articleId in self.articles:
+        if not articleId in self.articles and isinstance(articleId, int):
             self.reputation = (self.reputation*self.size+articleValidity)/(self.size+1)
             self.articles.append(articleId)
             self.size += 1
-    # os.remove("rep_model/reputationDict.csv")
 
 class globals:
     sources = {}
-    # sources = {'New York Times' : source('New York Times', 1, 300, 0)}
-
 
 def returnOutput(mlOut):
     """takes the output of our ml and turns it into a final stances
@@ -56,7 +49,7 @@ def returnOutput(mlOut):
     loadReputations(FILEPATH)
     for index, row in mlOut.iterrows():
         stance = row['Stance']
-        articleId = index
+        articleId = row['Body ID']
         # articleId = row['Body ID']
         sourceName = row['source']
         op = opinion(sourceName, articleId, stance)
@@ -132,13 +125,7 @@ def loadReputations(filepath):
         next(reader, None)  # skip the headers
         # TODO: fix this ignore first row
         # isHead = True
-        for row in reader:
-            # if isHead:
-            #     next
-            #     isHead = False
-            print(row['source'])
-            print(row['articles'])
-            print(row['reputation'])
+        for row in reader:   
             globals.sources[row['source']] = source(row['source'], row['reputation'], row['size'], row['articles'])
             # globals.sources[row['source']].size = 100 #Only for defaults
 
@@ -157,9 +144,13 @@ def writeToDisk(filepath):
         # fieldnames = ['source', 'reputation', 'size', 'articles']
         writer = csv.DictWriter(csvfile, fieldnames = fieldnames)
         writer.writeheader()	   
+        #TODO fix this, for some reason it is appending the empty string
+
         for k in globals.sources.keys():	  
+            arts = [art for art in  globals.sources.get(k).articles if isinstance(art, int)]
+            # print(arts)
             writer.writerow({'source': k, 'reputation':
-                globals.sources.get(k).reputation, 'size': globals.sources.get(k).size, 'articles': globals.sources.get(k).articles })
+                globals.sources.get(k).reputation, 'size': globals.sources.get(k).size, 'articles': arts })
 
 
 def dumpRepTable():

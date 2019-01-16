@@ -281,7 +281,7 @@ def load_model(sess):
     """
 
     saver = tf.train.Saver()
-    saver.restore(sess, "../stance_ml/model/model.checkpoint")
+    saver.restore(sess, "model_ml/model.checkpoint")
 
 
 def save_predictions(pred, file):
