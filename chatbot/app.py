@@ -156,6 +156,7 @@ def predict():
 
     # score = 0
     len(df_articles)
+    # calculate score using reputation
     score = returnOutput(df_ml)
 
     print("Total response time--- %s seconds ---" % (time.time() - start_time))
@@ -254,10 +255,8 @@ def results():
 
     if score > 0:
         verdict = "VERIFIED"
-    elif score <= 0:
-        verdict = "DEBATABLE"
     else:
-        verdict = "UNDEFINED"
+        verdict = "FALSE"
 
     #extract each article 
     article1 = { "source": "Amulya.co",
@@ -313,7 +312,7 @@ def webhook():
     
     sentence = results()
 
-    #resp.message(sentence)
+    resp.message(sentence)
 
     return str(resp)
     #return make_response(jsonify(results()))

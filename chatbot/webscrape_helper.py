@@ -65,7 +65,7 @@ def getArticles(keywords):
         # ignoreKeywords = "SpaceX",
         # sourceUri = "nytimes.com")
     q.setRequestedResult(RequestArticlesInfo(sortBy="sourceImportance"))
-    res = q.execQuery(er, sortBy="sourceImportance", maxItems = 50)
+    res = q.execQuery(er, sortBy="sourceImportance", maxItems = 200)
     local_df = pd.DataFrame()
     local_body_df = pd.DataFrame()
     index = 0
