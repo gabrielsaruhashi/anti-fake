@@ -9,6 +9,7 @@ import nltk
 import requests
 from IPython.display import display, HTML
 from util import stop_words
+import time
 
 global_df = pd.DataFrame()
 eventregistry_api = 'aa1174a5-a633-492d-a182-28d59fc28a34'
@@ -29,7 +30,6 @@ def getInputArticleKeywords(user_url):
     for word in keywords:
         if len(kws) < 10:
             kws.append(word)
-
     return kws
 
 
@@ -40,12 +40,12 @@ def getArticles(keywords):
     
     er = EventRegistry(apiKey = eventregistry_api)
     q = QueryArticlesIter(
-        keywords = QueryItems.OR(keywords))
+        keywords = QueryItems.AND(keywords))
         # keywordsLoc = "title",
         # ignoreKeywords = "SpaceX",
         # sourceUri = "nytimes.com")
-    q.setRequestedResult(RequestArticlesInfo(sortBy="rel"))
-    res = q.execQuery(er, sortBy = "rel", maxItems = 500)
+    q.setRequestedResult(RequestArticlesInfo(sortBy="sourceImportance"))
+    res = q.execQuery(er, sortBy="sourceImportance", maxItems = 500)
     local_df = pd.DataFrame()
     local_body_df = pd.DataFrame()
     index = 0
@@ -132,7 +132,7 @@ def azureClaimSearch(claim):
     # tokenize string
     tokens = claim.split()
     tokens = [word for word in tokens if word.lower() not in stop_words]
-    
+
     webscrapeMain(tokens, CLAIM_CHECK)
     # azure_pd = pd.DataFrame()
 

@@ -302,7 +302,8 @@ def save_predictions(pred, file):
 
         writer.writeheader()
         for instance in pred:
-            writer.writerow({'Stance': label_ref_rev[instance]})
+            # writer.writerow({'Stance': label_ref_rev[instance]})
+            writer.writerow({'Stance': instance})
 
 
 def storeVector(vector, path):

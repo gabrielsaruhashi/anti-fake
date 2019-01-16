@@ -2,10 +2,10 @@ import csv
 import time
 import pandas as pd
 
-# DEFAULTSFILEPATH = '/Users/Joshua_Freier/hackMIT/FakeBananas/rep/reputationDict.csv'
-# NORMALFILEPATH = '/Users/Joshua_Freier/hackMIT/FakeBananas/rep/reputations.csv'
-FILEPATH = "./default_rep.csv"
+FILEPATH = "rep_model/reputationDict.csv"
+DEFAULT_FILEPATH = 'rep_model/default_rep.csv'
 
+fieldnames = ['source', 'reputation', 'size', 'articles']
 
 class opinion:
     def __init__(self, sourceName, articleId, stance):
@@ -17,12 +17,16 @@ class source:
     """articles #list of strings
     size #int
     reputation #number between -1 and 1 inclusive"""
-    def __init__(self, sourceName, reputation, articles, size):
+    def __init__(self, sourceName, reputation, size, articles):
         self.sourceName = sourceName
         self.reputation = reputation
         self.articles = articles
         self.size = size
     def addArticle(self, articleId, articleValidity):
+        print(articleId)
+        print(articleValidity)
+        print(self.reputation)
+        print(self.size)
         self.reputation = (self.reputation*self.size+articleValidity)/(self.size+1)
         if not articleId in self.articles:
             self.reputation = (self.reputation*self.size+articleValidity)/(self.size+1)
@@ -30,8 +34,8 @@ class source:
             self.size += 1
 
 class globals:
-    # sources = {}
-    sources = {'New York Times' : source('New York Times', 1, 300, 0)}
+    sources = {}
+    # sources = {'New York Times' : source('New York Times', 1, 300, 0)}
 
 
 def returnOutput(mlOut):
@@ -40,9 +44,10 @@ def returnOutput(mlOut):
     """
     loadReputations(FILEPATH)
     for index, row in mlOut.iterrows():
-        stance = row['Stances']
-        articleId = row['BodyID']
-        sourceName = row['SourceName']
+        stance = row['Stance']
+        articleId = index
+        # articleId = row['Body ID']
+        sourceName = row['source']
         op = opinion(sourceName, articleId, stance)
         if index == 0:
             opinions = [op]
@@ -50,7 +55,7 @@ def returnOutput(mlOut):
             opinions.append(op)
     stance = avgStance(opinions)
     updateRep(opinions)
-    # writeToDisk(NORMALFILEPATH)
+    writeToDisk(FILEPATH)
     return stance
 
 def avgStance(opinions):
@@ -60,7 +65,7 @@ def avgStance(opinions):
     """finalStance #to hold our final stance"""
     finalStance = 0
     for op in opinions:
-        print(type(op))
+        # print(type(op))
         #disagree
         if op.stance == 0:
             if op.sourceName in globals.sources:
@@ -102,52 +107,37 @@ def compareStance(opinion, opinions):
 def updateRep(opinions):
     for op in opinions:
         if not op.sourceName in globals.sources:
-            globals.sources.update({op.sourceName : source(op.sourceName, 0, [], 1)})
+            globals.sources.update({op.sourceName : source(op.sourceName, 0, 1, [])})
         globals.sources.get(op.sourceName).addArticle(op.articleId, compareStance(op, opinions))
 
 def loadReputations(filepath):
     with open(filepath) as csvfile:
-        fieldnames = ['source', 'reputation', 'articles', 'size']
+        # fieldnames = ['source', 'reputation', 'size', 'articles']
         reader = csv.DictReader(csvfile, fieldnames = fieldnames)
-        for row in reader:
-            print(row['source'])
-            globals.sources[row['source']] = source(row['source'], row['reputation'], row['articles'], row['size'])
-            globals.sources[row['source']].size = 100 #Only for defaults
 
+        for row in reader:
+            # print(row['source'])
+            globals.sources[row['source']] = source(row['source'], row['reputation'], row['size'], row['articles'])
+            # globals.sources[row['source']].size = 100 #Only for defaults
+
+#  run it the first time to get a fresh csv
 def loadDefaultRepsFromDisk(filepath):
     with open(filepath) as csvfile:
-        fieldnames = ['source', 'reputation']
+        # fieldnames = ['source', 'reputation', 'size', 'articles']
         reader = csv.DictReader(csvfile, fieldnames = fieldnames)
         for row in reader:
 #            print(row['source'])
-            globals.sources[row['source']] = source(row['source'], row['reputation'], [], 100)
+            globals.sources[row['source']] = source(row['source'], row['reputation'], 100, [])
+    writeToDisk(FILEPATH)
 
-# def writeToDisk(filepath):
-#     with open(filepath, 'w') as csvfile:
-#         fieldnames = ['source', 'reputation', 'articles', 'size']
-#         writer = csv.DictWriter(csvfile, fieldnames = fieldnames)
-#         writer.writeheader()
-#         for k, v in globals.sources.items():
-#             if(type(v) == source):
-#                 writer.writerow({'source': k, 'reputation': v.reputation, 'articles' : v.articles, 'size' : v.size})
-#             else:
-#                 print(source)def writeToDisk():	def loadDefaultRepsFromDisk(filepath):
-#     with open('rep/reputationDict.csv', 'w') as csvfile:	    with open(filepath) as csvfile:
-#         fieldnames = ['source', 'reputation']	        fieldnames = ['source', 'reputation']
-#         writer = csv.DictWriter(csvfile, fieldnames=fieldnames)	        reader = csv.DictReader(csvfile, fieldnames = fieldnames)
-#         for row in reader:
-# #            print(row['source'])
-#             globals.sources[row['source']] = source(row['source'], row['reputation'], [], 100)
-
-def writeToDisk():
-    with open('./reputationDict.csv', 'w') as csvfile:
-        fieldnames = ['source', 'reputation']
+def writeToDisk(filepath):
+    with open(filepath, 'w') as csvfile:
+        # fieldnames = ['source', 'reputation', 'size', 'articles']
         writer = csv.DictWriter(csvfile, fieldnames = fieldnames)
         writer.writeheader()	   
         for k in globals.sources.keys():	  
             writer.writerow({'source': k, 'reputation':
-                globals.sources.get(k).reputation})
+                globals.sources.get(k).reputation, 'size': globals.sources.get(k).size, 'articles': globals.sources.get(k).articles })
 
 
-# loadDefaultRepsFromDisk(FILEPATH)
-# writeToDisk()
+loadDefaultRepsFromDisk(DEFAULT_FILEPATH)

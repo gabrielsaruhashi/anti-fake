@@ -7,6 +7,8 @@ from webscrape_helper import azureClaimSearch
 import time
 import random
 import pickle
+from REP import *
+import pandas as pd
 # from ..rep_model.REP import * 
 
 import os
@@ -43,7 +45,6 @@ def runModel(sess, keep_prob_pl, predict, features_pl, bow_vectorizer, tfreq_vec
     start_time = time.time()
     print("Now running predictions...")
 
-    # THIS is the info from Henry
     userClaims = "../webscrape/claims.csv"
     userBodies = "../webscrape/bodies.csv"
     # parse that info
@@ -81,7 +82,7 @@ def trainVectors():
     storeVector(tfreq_vectorizer, "tfreq.pickle")
     storeVector(tfidf_vectorizer, "tfidf.pickle")
 
-def calculateScore():
+def runPredictions():
     # call train vectors only at the first time
     # trainVectors()
     bow_vectorizer = loadVector("bow.pickle")
@@ -118,7 +119,6 @@ def calculateScore():
     '''PREDICTION'''
     print("Now running predictions...")
 
-    # THIS is the info from Henry
     userClaims = "claims.csv"
     userBodies = "bodies.csv"
     # parse that info
@@ -131,9 +131,10 @@ def calculateScore():
     test_pred = sess.run(predict, feed_dict=test_feed_dict)
     # timing
     print("Predictions complete.")
+
+    # store in a csv
+    save_predictions(test_pred, "pred.csv" )
     return test_pred
-
-
 
 
 # API for prediction
@@ -142,20 +143,33 @@ def predict():
     start_time = time.time()
     # init()
     claim = request.args.get('claim')
-    # parameters = getParameters()
 
     # webscrape
     azureClaimSearch(claim)
 
     # run model
-    stances = calculateScore()
-    score = 0
-    for stance in stances:
-        # agree
-        if stance == 0:
-            score += 1
-        elif stance == 1 or stance == 2:
-            score -= 1
+    stances = runPredictions()
+
+    # load the articles using panda
+    df_articles = pd.read_csv("articles.csv")
+    df_stances = pd.read_csv("pred.csv")
+    df_ml = pd.concat([df_articles, df_stances], axis=1)
+
+    print(df_ml)
+
+    # score = 0
+    score = returnOutput(df_ml)
+
+    # score = float(0)
+    # for stance in stances:
+    #     # agree
+    #     if stance == 0:
+    #         score += 1
+    #     elif stance == 1:
+    #         score -= 1
+    #     elif stance == 2:
+    #         score -= 1
+    # print(stance)
     print("Total response time--- %s seconds ---" % (time.time() - start_time))
 
     return sendResponse({"claim": claim, "score": score,  \

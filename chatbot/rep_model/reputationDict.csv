@@ -1,0 +1,183 @@
+source,reputation,size,articles
+source,reputation,100,[]
+economist,1,100,[]
+dallas morning news,0.75,100,[]
+denver post,0.66,100,[]
+trump,-1,100,[]
+npr,0.9,100,[]
+abc,-0.25,100,[]
+thinkprogress,0.45,100,[]
+the blaze,-0.45,100,[]
+the colbert report,0.3,100,[]
+yahoo,-0.6,100,[]
+breitbart,-0.92,100,[]
+the sean hannity show,-0.5,100,[]
+associated press,0.9,100,[]
+people magazine,-0.4,100,[]
+huffington post,-0.55,100,[]
+al jazeera,0.85,100,[]
+buzzfeed,-0.96,100,[]
+mother jones,0.65,100,[]
+washington post,0.64,100,[]
+fox,-0.5,100,[]
+cbs,0,100,[]
+drudge report,-0.1,100,[]
+kansas city star,0.5,100,[]
+nbc,-0.1,100,[]
+seattle times,0.75,100,[]
+time,0.6,100,[]
+usa today,0.27,100,[]
+wall street journal,0.76,100,[]
+slate,0.4,100,[]
+politico,0.75,100,[]
+occupy democrats,-6,100,[]
+latimes,0.76,100,[]
+local,0.75,100,[]
+the rush limbaugh show,-0.3,100,[]
+pbs,0.8,100,[]
+guardian,0.77,100,[]
+the daily show,0,100,[]
+the atlantic,0.23,100,[]
+New York Times,1,100,[]
+the onion,-0.6,100,[]
+bloomberg,0.7,100,[]
+google news,0.05,100,[]
+the ed shultz show,0.5,100,[]
+bbc,0.8,100,[]
+infowars,-0.7,100,[]
+blaze,-0.55,100,[]
+msnbc,-0.2,100,[]
+cnn,0.5,100,[]
+reuters,0.9,100,[]
+b'The Guardian',0.0,4,"[0, 1, 2]"
+b'Daily Mail Online',0.0,6,"[3, 4, 5, 6, 7]"
+b'Reuters',0.0,5,"[8, 9, 10, 11]"
+b'ABC News',0.0,4,"[12, 13, 17]"
+b'NBC News',0.0,2,[14]
+b'The Daily Caller',0.0,2,[15]
+b'The Independent',0.0,2,[16]
+b'News.com.au',0.0,2,[18]
+b'Global News',0.0,2,[19]
+b'Stuff',0.0,5,"[20, 22, 23, 24]"
+b'Business Insider',0.0,2,[21]
+b'POLITICO',0.0,2,[25]
+b'Economic Times',0.0,2,[26]
+b'msn.com',0.0,3,"[27, 28]"
+b'CNBC',0.0,6,"[29, 30, 31, 32, 33]"
+b'Channel NewsAsia',0.0,5,"[34, 35, 37, 38]"
+b'Breitbart',0.0,2,[36]
+b'The Times of India',0.0,3,"[39, 43]"
+b'The Jerusalem Post',0.0,3,"[40, 41]"
+b'Zee News',0.0,2,[42]
+b'The Star Online',0.0,4,"[44, 45, 48]"
+b'The Irish Times',0.0,3,"[46, 47]"
+b'The Straits Times',0.0,2,[49]
+b'ewn.co.za',0.0,2,[50]
+b'Firstpost',0.0,7,"[51, 52, 55, 56, 57, 58]"
+b'\xe5\xbd\x93\xe4\xbb\x8a\xe5\xa4\xa7\xe9\xa9\xac',0.0,3,"[53, 54]"
+b'Yeni \xc5\x9eafak',0.0,2,[59]
+b'The Japan Times',0.0,2,[60]
+b'Washington Examiner',0.0,3,"[61, 62]"
+b'The Daily Gazette',0.0,2,[63]
+b'Daily News and Analysis (DNA) India',0.0,2,[64]
+b'SBS',0.0,2,[65]
+b'israelnationalnews.com',0.0,2,[66]
+b'Arab News',0.0,2,[67]
+b'Reuters India',0.0,4,"[68, 69, 77]"
+b'timesofmalta.com',0.0,2,[70]
+b'MoneyControl',0.0,3,"[71, 74]"
+b'Japan Today',0.0,3,"[72, 76]"
+b'Business Standard',0.0,3,"[73, 75]"
+b'Stars and Stripes',0.0,2,[78]
+b'realclearpolitics.com',0.0,2,[79]
+b'thetimes.co.uk',0.0,2,[80]
+b'San Jose Mercury News',0.0,2,[81]
+b'The Times of Israel',0.0,2,[82]
+b'The Salt Lake Tribune',0.0,2,[83]
+b'The Bangor Daily News',0.0,2,[84]
+b'The National',0.0,2,[85]
+b'VICE',0.0,2,[86]
+b'Newsweek',0.0,2,[87]
+b'AOL.com',0.0,4,"[88, 89, 90]"
+b'http://www.livemint.com/',0.0,2,[91]
+b'Trend.Az',0.0,3,"[92, 93]"
+b'The Gazette',0.0,2,[94]
+b'CNS News',0.0,2,[95]
+b'ArkansasOnline',0.0,3,"[96, 97]"
+b'Cyprus Mail',0.0,2,[98]
+b'RTTNews',0.0,2,[99]
+b'greenwich time',0.0,2,[100]
+b'The Source',0.0,2,[101]
+b'Cyprus News',0.0,2,[102]
+b'The Day',0.0,2,[103]
+b'The Frontier Post',0.0,2,[104]
+b'The New Daily',0.0,2,[105]
+b'Business Insider Australia',0.0,2,[106]
+b'CBN.com - The Christian Broadcasting Network',0.0,2,[107]
+b'CNN International',0.0,2,[108]
+b'thecitizenng.com',0.0,2,[109]
+b'Wenatchee World',0.0,2,[110]
+b'Outside the Beltway',0.0,2,[111]
+b'ktvq.com',0.0,4,"[112, 113, 114]"
+b'Forum of Fargo-Moorhead',0.0,2,[115]
+b'KBZK TV 7',0.0,2,[116]
+b'Huntington News',0.0,2,[117]
+b'Newsy',0.0,2,[118]
+b'LifeZette',0.0,2,[119]
+b'Duluth Budgeteer News',0.0,2,[120]
+b'Northwest Arkansas Democrat Gazette',0.0,3,"[121, 124]"
+b'BW Businessworld',0.0,2,[122]
+b'The Fresno Bee',0.0,2,[123]
+b'Grand Forks Herald',0.0,2,[125]
+b'presstv.com',0.0,2,[126]
+b'Hamodia',0.0,2,[127]
+b'South Asian Daily | The biggest South Asian Media House',0.0,2,[128]
+b'ktbb.com',0.0,2,[129]
+b'chinadaily.com.cn',0.0,2,[130]
+b'Warwick Daily News',0.0,2,[131]
+b'Jamestown Sun',0.0,2,[132]
+b'\xd9\x88\xda\xa9\xd8\xa7\xd9\x84\xd8\xa9 \xd8\xaa\xd8\xb3\xd9\x86\xdb\x8c\xd9\x85 \xd8\xa7\xd9\x84\xd8\xaf\xd9\x88\xd9\x84\xdb\x8c\xd8\xa9 \xd9\x84\xd9\x84\xd8\xa3\xd9\x86\xd8\xa8\xd8\xa7\xd8\xa1',0.0,2,[133]
+b'West Central Tribune',0.0,2,[134]
+b'investing.com',0.0,3,"[135, 136]"
+b'KXLF TV 4',0.0,4,"[137, 138, 139]"
+b'Queensland Times',0.0,2,[140]
+b'Bemidji Pioneer',0.0,2,[141]
+b'The Daily Star Lebanon',0.0,2,[142]
+b'Lismore Echo',0.0,2,[143]
+b'Citizentv.co.ke',0.0,3,"[144, 145]"
+b'Central Telegraph',0.0,2,[146]
+b'710 WDSM',0.0,3,"[147, 148]"
+b'NewsMax',0.0,2,[149]
+b'The Indian Express',0.0,2,[150]
+b'The Nation',0.0,2,[151]
+b'Sputnik',0.0,2,[152]
+b'eu.usatoday.com',0.0,2,[153]
+b'gulftoday.ae',0.0,2,[154]
+b'INSIDER',0.0,2,[155]
+b'Business Insider Malaysia',0.0,2,[156]
+b'Fox News',0.0,2,[157]
+b'Tweed Daily News',0.0,2,[158]
+b'oann.com',0.0,3,"[159, 185]"
+b'Independent Journal Review',0.0,4,"[160, 162, 190]"
+b'Byron Shire News',0.0,2,[161]
+b'infowars.com',0.0,2,[163]
+b'wimsradio.com',0.0,2,[164]
+b'Independent Recorder',0.0,3,"[165, 189]"
+b'investing.com UK',0.0,2,[166]
+b'East Bay Times',0.0,2,[167]
+b'NewsroomPost',0.0,2,[168]
+b'Herald net',0.0,2,[169]
+b'News18',0.0,2,[170]
+b'Daily Wire',0.0,2,[171]
+b'Investopedia',0.0,2,[172]
+b'Israel National News',0.0,2,[173]
+b'TRT World',0.0,4,"[174, 180, 188]"
+b'Latestly',0.0,2,[175]
+b'rawstory.com',0.0,2,[176]
+b'chinadailyhk',0.0,3,"[177, 182]"
+b'ghanavisions.com',0.0,2,[178]
+b'malaymail.com',0.0,4,"[179, 184, 187]"
+b'Pars Today',0.0,2,[181]
+b'The Hollywood Unlocked',0.0,2,[183]
+b'Manila Bulletin News',0.0,2,[186]
+b'WIC News',0.0,2,[191]
