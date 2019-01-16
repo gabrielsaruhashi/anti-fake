@@ -19,12 +19,6 @@ os.environ['KMP_DUPLICATE_LIB_OK']='True'
 app = Flask(__name__)
 sess = tf.Session()
 
-# def init():
-#     global sess
-#     load_model(sess)
-#     print("Loaded model...")
-
-
 # Getting Parameters
 def getParameters():
     parameters = []
@@ -161,6 +155,11 @@ def predict():
 
     print("Total response time--- %s seconds ---" % (time.time() - start_time))
 
+    # clean up for next search
+    os.remove("claims.csv")
+    os.remove("bodies.csv")
+    os.remove("articles.csv")
+
     return sendResponse({"claim": claim, "score": score,  \
     "sources": ['https://www.washingtonpost.com/news/powerpost/wp/2018/01/11/joe-arpaio-is-back-and-brought-his-undying-obama-birther-theory-with-him/?utm_term=.3c88c56fee34']})
 
@@ -195,14 +194,14 @@ def results():
     # webscrape
     azureClaimSearch(claim)
 
-    # run model
-    score = 0
-    for stance in stances:
-        # agree
-        if stance == 0:
-            score += 1
-        elif stance == 1 or stance == 2:
-            score -= 1
+    # # run model
+    # score = 0
+    # for stance in stances:
+    #     # agree
+    #     if stance == 0:
+    #         score += 1
+    #     elif stance == 1 or stance == 2:
+    #         score -= 1
     print("Total response time--- %s seconds ---" % (time.time() - start_time))
 
     verdict = ""
