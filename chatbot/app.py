@@ -4,6 +4,7 @@ from flask import jsonify, request, make_response
 import tensorflow as tf
 from util import *
 from webscrape_helper import azureClaimSearch
+from twilio.twiml.messaging_response import MessagingResponse
 import time
 import random
 import pickle
@@ -158,6 +159,7 @@ def predict():
     # print(df_ml)
 
     # score = 0
+    len(df_articles)
     score = returnOutput(df_ml)
 
     # score = float(0)
@@ -181,66 +183,107 @@ def predict():
 def index():
     return 'Hello world'
 
+# default route
+@app.route('/test',  methods=['POST'])
+def test():
+    # req = request.get_json(force=True)
+
+    # Use this data in your application logic
+    from_number = request.form['From']
+    to_number = request.form['To']
+    body = request.form['Body']
+
+    print(request.form['Body'])
+
+    # Start our TwiML response
+    resp = MessagingResponse()
+
+    resp.message("The Robots are coming! Head for the hills!")
+    print(resp)
+
+    return str(resp)
+
+
 # function for responses
 def results():
     # build a request object
-    req = request.get_json(force=True)
+    #req = request.get_json(force=True)
+
+
+    # Use this data in your application logic
+    from_number = request.form['From']
+    to_number = request.form['To']
+    claim = request.form['Body']
+
+    print(request.form['Body'])
+
+    # Start our TwiML response
+    resp = MessagingResponse()
+
+
 
     #PREDICT   
     start_time = time.time()
     # fectch action from json
-    action = req.get('queryResult').get('intent').get('displayName')
-    claim = ""
-    command = ""
+    #action = req.get('queryResult').get('intent').get('displayName')
+    #claim = ""
+    #command = ""
     #set claim based on the 
-    if action == "echo":
-        claim = req.get('queryResult').get('parameters').get('echoText')
-    if action == "webhook-intent":
-        claim = req.get('queryResult').get('parameters').get('stance')
-        command = req.get('queryResult').get('parameters').get('Command')
-
-    
-    # parameters = getParameters()
-
+    # if action == "echo":
+    #     claim = req.get('queryResult').get('parameters').get('echoText')
+    # if action == "webhook-intent":
+    #claim = req.get('queryResult').get('parameters').get('claim')
+    #command = req.get('queryResult').get('parameters').get('Command')
+    #print(claim)
+    #print(command)
 
     # webscrape
     azureClaimSearch(claim)
 
     # run model
-    score = 0
-    for stance in stances:
-        # agree
-        if stance == 0:
-            score += 1
-        elif stance == 1 or stance == 2:
-            score -= 1
-    print("Total response time--- %s seconds ---" % (time.time() - start_time))
+    stances = runPredictions()
 
+    # load the articles using panda
+    df_articles = pd.read_csv("articles.csv")
+    df_stances = pd.read_csv("pred.csv")
+    df_ml = pd.concat([df_articles, df_stances], axis=1)
+
+    # score = 0
+    score = returnOutput(df_ml)
+
+    print("Total response time--- %s seconds ---" % (time.time() - start_time))
+    number_of_articles = len(df_articles.index)
+
+ 
     verdict = ""
 
     if score > 0:
         verdict = "VERIFIED"
-    elif claim <= 0:
+    elif score <= 0:
         verdict = "DEBATABLE"
     else:
         verdict = "UNDEFINED"
 
-    number_of_articles = 155
-
     #extract each article 
-    article1 = { "title": "Amulya's Amazing Website",
-        "url": "http://amulya.co" }
-    article2 = { "title": "Second amazing Article",
-        "url": "http://amulya.co/article1" }
-    article2 = { "title": "Second amazing Article",
-        "url": "http://amulya.co/article1" }
-    article3 = {"title": "WSJ is pretty good too",
-        "url": "https://www.washingtonpost.com/news/powerpost/wp/2018/01/11/joe-arpaio-is-back-and-brought-his-undying-obama-birther-theory-with-him/?utm_term=.3c88c56fee34"}
+    article1 = { "source": "Amulya.co",
+        "url": "https://amulya.co" }
+    article2 = { "source": "Amulya.co",
+        "url": "https://amulya.co" }
+    article3 = { "source": "Amulya.co",
+        "url": "https://amulya.co" }
+    # article3 = { "source": df_articles[2, "source"],
+    #     "url": df_articles[2, "url"] }
+
+    sentence =  "Your search was: '" + claim + "' | We referenced " + str(number_of_articles)  + " articles and our verdict about your stance is " + verdict + " | Here are a few more articles " + article1["url"] + " and " + article2["url"]  + " and " + article3["url"] + " for more info"
+    # resp.message("your search was")
+
+    print(sentence)
+    return sentence
 
     #test each article against the action from google dialogflow
     if action == "echo":
-        sentence =  "Your search was: '" + stance + "' | We referenced " + str(number_of_articles)  + " articles and our verdict about your stance is " + verdict + " | Here are a few more articles " + article1 + " and " + article2  + " and " + article3 + " for more info"
-
+        sentence =  "Your search was: '" + claim + "' | We referenced " + str(number_of_articles)  + " articles and our verdict about your stance is " + verdict + " | Here are a few more articles " + article1["url"] + " and " + article2["url"]  + " and " + article3["url"] + " for more info"
+        print(sentence)
         response = {
             "fulfillmentText": sentence,
             "source" : "TruthAI",  
@@ -248,8 +291,8 @@ def results():
         return response
          
     if action == "webhook-intent":
-        sentence = "Your search was: '" + stance + "' and your command was '" + command + "' | We referenced " + str(number_of_articles)  + " articles and our verdict about your stance is " + verdict + " | Here are a few more articles " + article1 + " and " + article2 + " and " + article3  + " for more info"
-
+        sentence = "Your search was: '" + claim + "' | We referenced " + str(number_of_articles)  + " articles and our verdict about your stance is " + verdict + " | Here are a few more articles " + article1 + " and " + article2 + " and " + article3  + " for more info"
+        print(sentence)
         response = {
             "fulfillmentText": sentence,
             "source" : "TruthAI",  
@@ -263,7 +306,22 @@ def results():
 @app.route('/webhook', methods=['GET', 'POST'])
 def webhook():
     # return response
-    return make_response(jsonify(results()))
+
+    resp = MessagingResponse()
+    # Use this data in your application logic
+    from_number = request.form['From']
+    to_number = request.form['To']
+    claim = request.form['Body']
+
+    resp.message("your search was: " + claim)
+    resp.message("we are searching the web to find you the truth. Give us a few seconds")
+    
+    sentence = results()
+
+    #resp.message(sentence)
+
+    return str(resp)
+    #return make_response(jsonify(results()))
 
 
 # run the app

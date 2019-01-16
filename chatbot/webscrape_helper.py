@@ -18,6 +18,26 @@ bodies_df = pd.DataFrame()
 
 CLAIM_CHECK = 0
 ARTICLE_CHECK = 1
+
+
+# def isSameQuery(claim):
+#     #queries, urls, articles
+#     queries_df = pd.read_csv(queries.csv)
+
+#     for queries in queries_df[query]:
+        
+    #print(df)
+    #claim_dict = dict(zip(list(queries_df.queries), list(queries_df.score)))
+
+# def saveQuery(claim, article1, article2, article3, score):
+#     article1 = "https://www.wsj.com/articles/sears-to-stay-open-after-edward-lampert-prevails-in-bankruptcy-auction-11547636823?mod=hp_lead_pos1"
+#     article2 = "https://www.wsj.com/articles/sears-to-stay-open-after-edward-lampert-prevails-in-bankruptcy-auction-11547636823?mod=hp_lead_pos1"
+#     article3 = "https://www.wsj.com/articles/sears-to-stay-open-after-edward-lampert-prevails-in-bankruptcy-auction-11547636823?mod=hp_lead_pos1"
+
+#     articles_df = pd.DataFrame({'query': [a],'article_url': [article1, article2, article3] , 'score': [score]})
+#     articles_df.to_csv('queries.csv', sep=',')
+
+
 def getInputArticleKeywords(user_url):
 #     url = user_url.decode('utf-8')
     article = Article(user_url)
@@ -45,7 +65,7 @@ def getArticles(keywords):
         # ignoreKeywords = "SpaceX",
         # sourceUri = "nytimes.com")
     q.setRequestedResult(RequestArticlesInfo(sortBy="sourceImportance"))
-    res = q.execQuery(er, sortBy="sourceImportance", maxItems = 500)
+    res = q.execQuery(er, sortBy="sourceImportance", maxItems = 50)
     local_df = pd.DataFrame()
     local_body_df = pd.DataFrame()
     index = 0
@@ -154,3 +174,4 @@ def azureClaimSearch(claim):
     generateClaimCSV(claim)
 
     print("Webscraping time--- %s seconds ---" % (time.time() - start_time))
+
