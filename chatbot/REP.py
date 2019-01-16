@@ -2,6 +2,8 @@ import csv
 import time
 import pandas as pd
 
+import os
+
 FILEPATH = "rep_model/reputationDict.csv"
 DEFAULT_FILEPATH = 'rep_model/default_rep.csv'
 
@@ -9,7 +11,7 @@ fieldnames = ['source', 'reputation', 'size', 'articles']
 
 class opinion:
     def __init__(self, sourceName, articleId, stance):
-        self.sourceName = sourceName
+        self.sourceName = sourceName.lower()
         self.articleId = articleId
         self.stance = stance
 
@@ -18,20 +20,28 @@ class source:
     size #int
     reputation #number between -1 and 1 inclusive"""
     def __init__(self, sourceName, reputation, size, articles):
+        # print(type(articles))
+        # TODO: fix this
+        if type(articles) is str:
+            articles = articles.split(',')
+
         self.sourceName = sourceName
-        self.reputation = reputation
+        self.reputation = float(reputation)
         self.articles = articles
-        self.size = size
+        self.size = int(size)
     def addArticle(self, articleId, articleValidity):
-        print(articleId)
-        print(articleValidity)
-        print(self.reputation)
-        print(self.size)
+  
         self.reputation = (self.reputation*self.size+articleValidity)/(self.size+1)
+
+        print(articleId)
+        print(type(articleId))
+        print(self.articles)
+        print(type(self.articles))
         if not articleId in self.articles:
             self.reputation = (self.reputation*self.size+articleValidity)/(self.size+1)
             self.articles.append(articleId)
             self.size += 1
+    # os.remove("rep_model/reputationDict.csv")
 
 class globals:
     sources = {}
@@ -42,6 +52,7 @@ def returnOutput(mlOut):
     """takes the output of our ml and turns it into a final stances
     :param mlOut: a panda dataframe
     """
+
     loadReputations(FILEPATH)
     for index, row in mlOut.iterrows():
         stance = row['Stance']
@@ -56,6 +67,7 @@ def returnOutput(mlOut):
     stance = avgStance(opinions)
     updateRep(opinions)
     writeToDisk(FILEPATH)
+    
     return stance
 
 def avgStance(opinions):
@@ -66,7 +78,10 @@ def avgStance(opinions):
     finalStance = 0
     for op in opinions:
         # print(type(op))
-        #disagree
+        # if op.sourceName in globals.sources:
+        #     print(globals.sources.get(op.sourceName).reputation)
+        #     print(type(globals.sources.get(op.sourceName).reputation))
+        #agr
         if op.stance == 0:
             if op.sourceName in globals.sources:
                 finalStance -= globals.sources.get(op.sourceName).reputation
@@ -114,9 +129,16 @@ def loadReputations(filepath):
     with open(filepath) as csvfile:
         # fieldnames = ['source', 'reputation', 'size', 'articles']
         reader = csv.DictReader(csvfile, fieldnames = fieldnames)
-
+        next(reader, None)  # skip the headers
+        # TODO: fix this ignore first row
+        # isHead = True
         for row in reader:
-            # print(row['source'])
+            # if isHead:
+            #     next
+            #     isHead = False
+            print(row['source'])
+            print(row['articles'])
+            print(row['reputation'])
             globals.sources[row['source']] = source(row['source'], row['reputation'], row['size'], row['articles'])
             # globals.sources[row['source']].size = 100 #Only for defaults
 
@@ -140,4 +162,14 @@ def writeToDisk(filepath):
                 globals.sources.get(k).reputation, 'size': globals.sources.get(k).size, 'articles': globals.sources.get(k).articles })
 
 
+def dumpRepTable():
+     with open('rep_model/reputationDict.csv') as csvfile:
+        # fieldnames = ['source', 'reputation', 'size', 'articles']
+        reader = csv.DictReader(csvfile, fieldnames = fieldnames)
+        
+        # for row in reader:
+        #    print(type(row['source']))
+            # globals.sources[row['source']] = source(row['source'], row['reputation'], 100, [])
+        # print(len(reader))
+# dumpRepTable()
 loadDefaultRepsFromDisk(DEFAULT_FILEPATH)

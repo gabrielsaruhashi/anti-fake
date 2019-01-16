@@ -1,4 +1,3 @@
-source,reputation
 economist,1
 dallas morning news,0.75
 denver post,0.66
@@ -13,7 +12,7 @@ breitbart,-0.92
 the sean hannity show,-0.5
 associated press,0.9
 people magazine,-0.4
-huffington post,-0.55
+the huffington post,-0.55
 al jazeera,0.85
 buzzfeed,-0.96
 mother jones,0.65
@@ -34,15 +33,16 @@ latimes,0.76
 local,0.75
 the rush limbaugh show,-0.3
 pbs,0.8
-guardian,0.77
+the guardian,0.77
 the daily show,0
 the atlantic,0.23
-New York Times,1
+the new york times,1
 the onion,-0.6
 bloomberg,0.7
 google news,0.05
 the ed shultz show,0.5
 bbc,0.8
+bbc news,0.8
 infowars,-0.7
 blaze,-0.55
 msnbc,-0.2

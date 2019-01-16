@@ -155,7 +155,7 @@ def predict():
     df_stances = pd.read_csv("pred.csv")
     df_ml = pd.concat([df_articles, df_stances], axis=1)
 
-    print(df_ml)
+    # print(df_ml)
 
     # score = 0
     score = returnOutput(df_ml)
@@ -207,7 +207,6 @@ def results():
     azureClaimSearch(claim)
 
     # run model
-    stances = calculateScore()
     score = 0
     for stance in stances:
         # agree
@@ -269,6 +268,4 @@ def webhook():
 
 # run the app
 if __name__ == '__main__':
-    print(("* Loading Keras model and Flask starting server..."
-"please wait until server has fully started"))
     app.run(debug=True, threaded=True)

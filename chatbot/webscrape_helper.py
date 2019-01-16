@@ -54,9 +54,9 @@ def getArticles(keywords):
 #     print(body_count)
     for article in res:
         data = {
-            'source': article['source']['title'].encode('utf-8'),
-            'url' : article['url'].encode('utf-8'),
-            'text' : article['body'].encode('utf-8')
+            'source': article['source']['title'].lower(),
+            'url' : article['url'],
+            'text' : article['body']
         }
         
         body = {
