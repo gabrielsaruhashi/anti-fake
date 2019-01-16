@@ -301,3 +301,16 @@ def save_predictions(pred, file):
         writer.writeheader()
         for instance in pred:
             writer.writerow({'Stance': label_ref_rev[instance]})
+
+def get_labels(stances):
+    labels = []
+    for _, row in stances.iterrows():
+        labels.append(label_ref[row['Stance']])
+    return labels
+
+
+def conv1d(x, W, b, strides=1):
+    # Conv2D wrapper, with bias and relu activation
+    x = tf.nn.conv1d(x, W, strides=[1, strides, strides, 1], padding='SAME')
+    x = tf.nn.bias_add(x, b)
+    return tf.nn.relu(x) 

@@ -155,21 +155,10 @@ def predict():
     df_stances = pd.read_csv("pred.csv")
     df_ml = pd.concat([df_articles, df_stances], axis=1)
 
-    # print(df_ml)
 
     # score = 0
     score = returnOutput(df_ml)
 
-    # score = float(0)
-    # for stance in stances:
-    #     # agree
-    #     if stance == 0:
-    #         score += 1
-    #     elif stance == 1:
-    #         score -= 1
-    #     elif stance == 2:
-    #         score -= 1
-    # print(stance)
     print("Total response time--- %s seconds ---" % (time.time() - start_time))
 
     return sendResponse({"claim": claim, "score": score,  \

@@ -33,10 +33,7 @@ class source:
   
         self.reputation = (self.reputation*self.size+articleValidity)/(self.size+1)
 
-        print(articleId)
-        print(type(articleId))
-        print(self.articles)
-        print(type(self.articles))
+
         if not articleId in self.articles:
             self.reputation = (self.reputation*self.size+articleValidity)/(self.size+1)
             self.articles.append(articleId)
@@ -136,9 +133,7 @@ def loadReputations(filepath):
             # if isHead:
             #     next
             #     isHead = False
-            print(row['source'])
-            print(row['articles'])
-            print(row['reputation'])
+        
             globals.sources[row['source']] = source(row['source'], row['reputation'], row['size'], row['articles'])
             # globals.sources[row['source']].size = 100 #Only for defaults
 

@@ -50,7 +50,6 @@ def getArticles(keywords):
     local_body_df = pd.DataFrame()
     index = 0
     body_count = 0
-    
 #     print(body_count)
     for article in res:
         data = {
@@ -122,7 +121,6 @@ def generateClaimCSV(claim):
     out['Headline'] = claims
     out['Body ID'] = range(len(data.index))
     out.to_csv('claims.csv')
-    print("Succesfully generated claims")
 
 # claim = 'Obama is not American'
 # generateClaimCSV(claim)
