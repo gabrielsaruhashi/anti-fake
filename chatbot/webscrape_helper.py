@@ -152,6 +152,25 @@ def generateClaimCSV(claim):
 # claim = 'Obama is not American'
 # generateClaimCSV(claim)
 
+
+def bingSearch(claim):
+     azure_pd = pd.DataFrame()
+
+    azure_key = '34d4fdab594e46c2b8f4b497042a7260'
+    search_url = "https://api.cognitive.microsoft.com/bing/v7.0/search"
+
+    headers = {"Ocp-Apim-Subscription-Key" : azure_key}
+    params  = {"q": claim, "textDecorations":True, "textFormat":"HTML"}
+    response = requests.get(search_url, headers=headers, params=params)
+    response.raise_for_status()
+    search_results = response.json()
+    
+    
+    for article in search_results["webPages"]["value"]:
+        # TODO de
+        url = article['url']
+        break
+   
 def azureClaimSearch(claim):
     start_time = time.time()
     # tokenize string
