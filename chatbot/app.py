@@ -181,11 +181,11 @@ def test():
     # req = request.get_json(force=True)
 
     # Use this data in your application logic
-    from_number = request.form['From']
-    to_number = request.form['To']
-    body = request.form['Body']
+    # from_number = request.form['From']
+    # to_number = request.form['To']
+    # body = request.form['Body']
 
-    print(request.form['Body'])
+    # print(request.form['Body'])
 
 
     response = VoiceResponse()
