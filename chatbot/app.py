@@ -151,7 +151,8 @@ def predict():
 # default route
 @app.route('/')
 def index():
-    return render_template("index")
+    # return render_template("index.html")
+    return "Hello"
 
 # default route
 @app.route('/test',  methods=['POST'])
