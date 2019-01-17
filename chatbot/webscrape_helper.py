@@ -65,7 +65,7 @@ def getArticles(keywords):
         # ignoreKeywords = "SpaceX",
         # sourceUri = "nytimes.com")
     q.setRequestedResult(RequestArticlesInfo(sortBy="sourceImportance"))
-    res = q.execQuery(er, sortBy="sourceImportance", maxItems = 50)
+    res = q.execQuery(er, sortBy="sourceImportance", maxItems = 200)
     local_df = pd.DataFrame()
     local_body_df = pd.DataFrame()
     index = 0
@@ -129,6 +129,7 @@ def webscrapeMain(evidence, mode):
 
     getArticles(kws)
     # print(bodies_df)
+    print(global_df)
     global_df = global_df.reset_index(drop=True)
     global_df.to_csv('articles.csv')
     bodies_df.to_csv('bodies.csv')
