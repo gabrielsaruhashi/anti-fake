@@ -22,7 +22,7 @@ from sklearn.feature_extraction.text import TfidfTransformer
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 import tensorflow as tf
-
+import pickle
 
 # Initialise global variables
 label_ref = {'agree': 0, 'disagree': 1, 'discuss': 2, 'unrelated': 3}
@@ -109,6 +109,14 @@ class FNCData:
         return rows
 
 
+def pipeline_train_cached():
+    train_set = loadVector('train_set.pickle')
+    train_stances = loadVector('train_stances.pickle')
+    bow_vectorizer = loadVector('bow_vectorizer.pickle')
+    tfreq_vectorizer = loadVector('tfreq_vectorizer.pickle')
+    tfidf_vectorizer = loadVector('tfidf_vectorizer.pickle')
+
+    return train_set, train_stances, bow_vectorizer, tfreq_vectorizer, tfidf_vectorizer
 # Define relevant functions
 def pipeline_train(train, test, lim_unigram):
 
@@ -210,6 +218,12 @@ def pipeline_train(train, test, lim_unigram):
         train_set.append(feat_vec)
         train_stances.append(label_ref[instance['Stance']])
 
+    storeVector(train_set, 'train_set.pickle')
+    storeVector(train_stances, 'train_stances.pickle')
+    storeVector(train_stances, 'bow_vectorizer.pickle')
+    storeVector(train_stances, 'tfreq_vectorizer.pickle')
+    storeVector(train_stances, 'tfidf_vectorizer.pickle')
+
     return train_set, train_stances, bow_vectorizer, tfreq_vectorizer, tfidf_vectorizer
 
 
@@ -266,6 +280,13 @@ def pipeline_test(test, bow_vectorizer, tfreq_vectorizer, tfidf_vectorizer):
 
     return test_set
 
+def storeVector(vector, path):
+    pickle.dump(vector, open(path,"wb"))
+
+def loadVector(path):
+    infile = open(path,'rb')
+    vec = pickle.load(infile)
+    return vec
 
 def load_model(sess, path='./model/model.checkpoint'):
 
@@ -281,6 +302,19 @@ def load_model(sess, path='./model/model.checkpoint'):
     saver = tf.train.Saver()
     saver.restore(sess, path)
 
+def save_model(sess, path='./my_model/model.checkpoint'):
+
+    """
+
+    Load TensorFlow model
+
+    Args:
+        sess: TensorFlow session
+
+    """
+
+    saver = tf.train.Saver()
+    saver.save(sess, path)
 
 def save_predictions(pred, file):
 
@@ -301,6 +335,26 @@ def save_predictions(pred, file):
         writer.writeheader()
         for instance in pred:
             writer.writerow({'Stance': label_ref_rev[instance]})
+
+def save_score_predictions(pred, file):
+
+    """
+
+    Save predictions to CSV file
+
+    Args:
+        pred: numpy array, of numeric predictions
+        file: str, filename + extension
+
+    """
+    with open(file, 'w') as csvfile:
+        fieldnames = ['Headline', 'Body ID','Stance']
+        writer = DictWriter(csvfile, fieldnames=fieldnames)
+
+        writer.writeheader()
+        for instance in pred:
+            print(instance)
+            writer.writerow({'Headline': instance[0], 'Body ID': instance[1],'Stance': label_ref_rev[instance[2]]})
 
 def get_labels(stances):
     labels = []

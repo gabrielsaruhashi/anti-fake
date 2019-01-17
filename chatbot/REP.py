@@ -69,24 +69,34 @@ def avgStance(opinions):
     """
     """finalStance #to hold our final stance"""
     finalStance = 0
+    most_pos = 0
+    most_neg = 0
+    # relevant_pos = ""
+    # relevant_neg = ""
     for op in opinions:
-        # print(type(op))
-        # if op.sourceName in globals.sources:
-        #     print(globals.sources.get(op.sourceName).reputation)
-        #     print(type(globals.sources.get(op.sourceName).reputation))
+   
         #agree
         if op.stance == 0:
             if op.sourceName in globals.sources:
-                finalStance += globals.sources.get(op.sourceName).reputation
+                finalStance -= globals.sources.get(op.sourceName).reputation
+                if most_pos < globals.sources.get(op.sourceName).reputation:
+                    most_pos = globals.sources.get(op.sourceName).reputation
+                    # relevant_pos = op.article_id
         #disagree
         elif op.stance == 1:
             if op.sourceName in globals.sources:
-                finalStance -= globals.sources.get(op.sourceName).reputation
+                finalStance += globals.sources.get(op.sourceName).reputation
+                if most_neg > globals.sources.get(op.sourceName).reputation:
+                    most_neg = op.article_id
+                    # relevant_neg = op.article_id
+                    
         # discuss
         elif op.stance == 2:
             if op.sourceName in globals.sources:
-                finalStance -= globals.sources.get(op.sourceName).reputation/4
+                finalStance += globals.sources.get(op.sourceName).reputation/4
     finalStance = finalStance/len(opinions)
+
+    # filter relevant articless
     return finalStance
 
 def compareStance(opinion, opinions):
@@ -153,14 +163,5 @@ def writeToDisk(filepath):
                 globals.sources.get(k).reputation, 'size': globals.sources.get(k).size, 'articles': arts })
 
 
-def dumpRepTable():
-     with open('rep_model/reputationDict.csv') as csvfile:
-        # fieldnames = ['source', 'reputation', 'size', 'articles']
-        reader = csv.DictReader(csvfile, fieldnames = fieldnames)
-        
-        # for row in reader:
-        #    print(type(row['source']))
-            # globals.sources[row['source']] = source(row['source'], row['reputation'], 100, [])
-        # print(len(reader))
 # dumpRepTable()
 loadDefaultRepsFromDisk(DEFAULT_FILEPATH)

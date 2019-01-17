@@ -23,6 +23,8 @@ import numpy as np
 import os
 os.environ['KMP_DUPLICATE_LIB_OK']='True'
 
+tf.reset_default_graph()
+
 
 file_target = 'competition_test_stances.csv'
 target = pd.read_csv(file_target)
@@ -42,7 +44,6 @@ file_test_bodies = "test_bodies.csv"
 file_predictions = 'predictions_test.csv'
 
 
-
 # Initialise hyperparameters
 r = random.Random()
 lim_unigram = 5000
@@ -53,7 +54,7 @@ l2_alpha = 0.00001
 learn_rate = 0.01
 clip_ratio = 5
 batch_size_train = 500
-epochs = 90
+epochs = 5
 
 
 # Load data sets
@@ -65,6 +66,8 @@ n_train = len(raw_train.instances)
 # Process data sets
 train_set, train_stances, bow_vectorizer, tfreq_vectorizer, tfidf_vectorizer = \
     pipeline_train(raw_train, raw_test, lim_unigram=lim_unigram)
+
+# train_set, train_stances, bow_vectorizer, tfreq_vectorizer, tfidf_vectorizer  = pipeline_train_cached()
 feature_size = len(train_set[0])
 test_set = pipeline_test(raw_test, bow_vectorizer, tfreq_vectorizer, tfidf_vectorizer)
 
@@ -79,14 +82,13 @@ keep_prob_pl = tf.placeholder(tf.float32)
 # Infer batch size
 batch_size = tf.shape(features_pl)[0]
 
-
-# Define convolutional layer
-# filt = tf.zeros([3, features_pl, 16])  # these should be real values, not 0
-# output = tf.nn.conv1d(features_pl, filt, stride=2, padding="VALID")
-
+#  
 # Define multi-layer perceptron
 hidden_layer = tf.nn.dropout(tf.nn.relu(tf.contrib.layers.linear(features_pl, hidden_size)), keep_prob=keep_prob_pl)
-logits_flat = tf.nn.dropout(tf.contrib.layers.linear(hidden_layer, target_size), keep_prob=keep_prob_pl)
+hidden_layer2 = tf.nn.dropout(tf.nn.relu(tf.contrib.layers.linear(hidden_layer, hidden_size * 2)), keep_prob=keep_prob_pl)
+hidden_layer3 = tf.nn.dropout(tf.nn.relu(tf.contrib.layers.linear(hidden_layer2, hidden_size)), keep_prob=keep_prob_pl)
+
+logits_flat = tf.nn.dropout(tf.contrib.layers.linear(hidden_layer3, target_size), keep_prob=keep_prob_pl)
 logits = tf.reshape(logits_flat, [batch_size, target_size])
 
 # Define L2 loss
@@ -100,11 +102,12 @@ loss = tf.reduce_sum(tf.nn.sparse_softmax_cross_entropy_with_logits(logits=logit
 softmaxed_logits = tf.nn.softmax(logits)
 predict = tf.argmax(softmaxed_logits, 1)
 
+out = pd.read_csv('test_stances_unlabeled.csv')
 
 # Load model
 if mode == 'load':
     with tf.Session() as sess:
-        load_model(sess)
+        load_model(sess, "./my_model/model.checkpoint")
         # get target pred
 
         # Predict
@@ -113,13 +116,9 @@ if mode == 'load':
         
         y_hat = np.array(test_pred)
         y = np.array(test_target_labels)
-        print(y_hat)
-        print(y)
-        print(y == y_hat)
+        
         count = (y == y_hat).sum()
         print(float(count) / len(test_target_labels))
-
-        
 
 
 # Train model
@@ -147,13 +146,24 @@ if mode == 'train':
                 batch_feed_dict = {features_pl: batch_features, stances_pl: batch_stances, keep_prob_pl: train_keep_prob}
                 _, current_loss = sess.run([opt_op, loss], feed_dict=batch_feed_dict)
                 total_loss += current_loss
+                print('Testing loss: {}\n'.format(current_loss))
 
 
         # Predict
         test_feed_dict = {features_pl: test_set, keep_prob_pl: 1.0}
         test_pred = sess.run(predict, feed_dict=test_feed_dict)
+        
+        y_hat = np.array(test_pred)
+        y = np.array(test_target_labels)
+        
+        count = (y == y_hat).sum()
+        print("Training ended. Accuracy is: ".format(float(count) / len(test_target_labels)))
+
+        save_model(sess)
 
 
 # Save predictions
-save_predictions(test_pred, file_predictions)
-save_predictions(test_target_labels, 'target_labels.csv')
+out = pd.concat([out, pd.DataFrame(test_pred)], axis=1)
+print(out)
+save_score_predictions(out, file_predictions)
+# save_predictions(test_target_labels, 'target_labels.csv')
