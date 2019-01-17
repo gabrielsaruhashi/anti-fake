@@ -133,13 +133,8 @@ def runPredictions():
     save_predictions(test_pred, "pred.csv" )
     return test_pred
 
-
-# API for prediction
-@app.route("/predict", methods=["GET"])
-def predict():
+def runPipeline(claim):
     start_time = time.time()
-    # init()
-    claim = request.args.get('claim')
 
     # webscrape
     azureClaimSearch(claim)
@@ -152,6 +147,8 @@ def predict():
     df_stances = pd.read_csv("pred.csv")
     df_ml = pd.concat([df_articles, df_stances], axis=1)
 
+    number_of_articles = len(df_articles.index)
+
     # calculate score using reputation
     score, out_urls  = returnOutput(df_ml)
     print(out_urls)
@@ -162,6 +159,15 @@ def predict():
     os.remove("claims.csv")
     os.remove("bodies.csv")
     os.remove("articles.csv")
+
+    return score, out_urls, number_of_articless
+
+# API for prediction
+@app.route("/predict", methods=["GET"])
+def predict():
+    claim = request.args.get('claim')
+
+    score, out_urls, _ = runPipeline(claim)
 
     return sendResponse({"claim": claim, "score": score,  \
     "sources": out_urls})
@@ -193,11 +199,17 @@ def test():
     return str(resp)
 
 
+def formatOutputUrls(urls):
+    base = "Here are some relevant sources:"
+    for url in urls:
+        base += ' ' + url ' '
+
+    return base
+
 # function for responses
 def results():
     # build a request object
     #req = request.get_json(force=True)
-
 
     # Use this data in your application logic
     from_number = request.form['From']
@@ -209,67 +221,30 @@ def results():
     # Start our TwiML response
     resp = MessagingResponse()
 
-    #PREDICT   
-    start_time = time.time()
-
-    # webscrape
-    azureClaimSearch(claim)
-
-    # run model
-    stances = runPredictions()
-
-    # load the articles using panda
-    df_articles = pd.read_csv("articles.csv")
-    df_stances = pd.read_csv("pred.csv")
-    df_ml = pd.concat([df_articles, df_stances], axis=1)
-
-    # score = 0
-    score = returnOutput(df_ml)
-
-    print("Total response time--- %s seconds ---" % (time.time() - start_time))
-    number_of_articles = len(df_articles.index)
-
-     # clean up for next search
-    os.remove("claims.csv")
-    os.remove("bodies.csv")
-    os.remove("articles.csv")
-
-    verdict = ""
+    # run pipeline to get back score and relevant urls
+    score, out_urls, number_of_articles = runPipeline(claim)
 
     if score > 0:
         verdict = "VERIFIED"
     else:
         verdict = "FALSE"
 
-    #extract each article 
-    article1 = { "source": "Amulya.co",
-        "url": "https://amulya.co" }
-    article2 = { "source": "Amulya.co",
-        "url": "https://amulya.co" }
-    article3 = { "source": "Amulya.co",
-        "url": "https://amulya.co" }
-    # article3 = { "source": df_articles[2, "source"],
-    #     "url": df_articles[2, "url"] }
+    formatted_urls = formatOutputUrls(out_urls)
 
-    sentence =  "Your search was: '" + claim + "' | We referenced " + str(number_of_articles)  + " articles and our verdict about your stance is " + verdict + " | Here are a few more articles " + article1["url"] + " and " + article2["url"]  + " and " + article3["url"] + " for more info"
-    # resp.message("your search was")
+    sentence =  "Your search was: '" + claim + "' | We referenced " + str(number_of_articles)  + " articles and our verdict about your stance is " + verdict + " | " + formatted_urls
 
     print(sentence)
     return sentence
 
     #test each article against the action from google dialogflow
     if action == "echo":
-        sentence =  "Your search was: '" + claim + "' | We referenced " + str(number_of_articles)  + " articles and our verdict about your stance is " + verdict + " | Here are a few more articles " + article1["url"] + " and " + article2["url"]  + " and " + article3["url"] + " for more info"
-        print(sentence)
         response = {
             "fulfillmentText": sentence,
             "source" : "TruthAI",  
         } 
         return response
          
-    if action == "webhook-intent":
-        sentence = "Your search was: '" + claim + "' | We referenced " + str(number_of_articles)  + " articles and our verdict about your stance is " + verdict + " | Here are a few more articles " + article1 + " and " + article2 + " and " + article3  + " for more info"
-        print(sentence)
+    elif action == "webhook-intent":
         response = {
             "fulfillmentText": sentence,
             "source" : "TruthAI",  
