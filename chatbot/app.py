@@ -1,6 +1,6 @@
 # import flask dependencies
 from flask import Flask
-from flask import jsonify, request, make_response
+from flask import jsonify, request, make_response, render_template
 import tensorflow as tf
 from util import *
 from webscrape_helper import azureClaimSearch
@@ -35,25 +35,6 @@ def sendResponse(responseObj):
     response.headers.add('Access-Control-Allow-Credentials', True)
     return response
 
-
-def runModel(sess, keep_prob_pl, predict, features_pl, bow_vectorizer, tfreq_vectorizer, tfidf_vectorizer):
-    start_time = time.time()
-    print("Now running predictions...")
-
-    userClaims = "../webscrape/claims.csv"
-    userBodies = "../webscrape/bodies.csv"
-    # parse that info
-    raw_test = FNCData(userClaims, userBodies)
-    # need more stuff for this
-    test_set = pipeline_test(raw_test, bow_vectorizer, tfreq_vectorizer, tfidf_vectorizer)
-    # idk what this does really
-    test_feed_dict = {features_pl: test_set, keep_prob_pl: 1.0}
-    # run predictions
-    test_pred = sess.run(predict, feed_dict=test_feed_dict)
-    # timing
-    print("generate test_set--- %s seconds ---" % (time.time() - start_time))
-    print("Predictions complete.")
-    return test_pred
 
 def trainVectors():
     file_train_instances = "train_stances.csv"
@@ -105,19 +86,15 @@ def runPredictions():
     softmaxed_logits = tf.nn.softmax(logits)
     predict = tf.argmax(softmaxed_logits, 1)
 
-    # LOAD MODEL
-    config = tf.ConfigProto()
-    config.gpu_options.allow_growth = True
-
-    sess = tf.Session(config=config)
+    sess = tf.Session()
     print("Loading checkpoint")
     load_model(sess)
 
     '''PREDICTION'''
     print("Now running predictions...")
 
-    userClaims = "claims.csv"
-    userBodies = "bodies.csv"
+    userClaims = "./claims.csv"
+    userBodies = "./bodies.csv"
     # parse that info
     raw_test = FNCData(userClaims, userBodies)
     # TODO hotload the vector representations instead of calculating every time
@@ -151,24 +128,22 @@ def runPipeline(claim):
 
     # calculate score using reputation
     score, out_urls  = returnOutput(df_ml)
-    print(out_urls)
 
     print("Total response time--- %s seconds ---" % (time.time() - start_time))
 
     # clean up for next search
-    os.remove("claims.csv")
-    os.remove("bodies.csv")
-    os.remove("articles.csv")
+    print("Cleaning up claims bodies and articles")
+    os.remove("./claims.csv")
+    os.remove("./bodies.csv")
+    os.remove("./articles.csv")
 
-    return score, out_urls, number_of_articless
+    return score, out_urls, number_of_articles
 
 # API for prediction
-@app.route("/predict", methods=["GET"])
+@app.route("/predict", methods=["GET", "POST"])
 def predict():
     claim = request.args.get('claim')
-
     score, out_urls, _ = runPipeline(claim)
-
     return sendResponse({"claim": claim, "score": score,  \
     "sources": out_urls})
 
@@ -176,7 +151,7 @@ def predict():
 # default route
 @app.route('/')
 def index():
-    return 'Hello world'
+    return render_template("index")
 
 # default route
 @app.route('/test',  methods=['POST'])
@@ -202,7 +177,8 @@ def test():
 def formatOutputUrls(urls):
     base = "Here are some relevant sources:"
     for url in urls:
-        base += ' ' + url ' '
+        # base += ' ' + url  + ' '
+        base += ' ' + url  + ' '
 
     return base
 
@@ -273,7 +249,6 @@ def webhook():
     resp.message(sentence)
 
     return str(resp)
-    #return make_response(jsonify(results()))
 
 
 # run the app

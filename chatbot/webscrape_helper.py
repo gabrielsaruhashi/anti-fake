@@ -65,7 +65,7 @@ def getArticles(keywords):
         # ignoreKeywords = "SpaceX",
         # sourceUri = "nytimes.com")
     q.setRequestedResult(RequestArticlesInfo(sortBy="sourceImportance"))
-    res = q.execQuery(er, sortBy="sourceImportance", maxItems = 200)
+    res = q.execQuery(er, sortBy="sourceImportance", maxItems = 50)
     local_df = pd.DataFrame()
     local_body_df = pd.DataFrame()
     index = 0
@@ -154,7 +154,7 @@ def generateClaimCSV(claim):
 
 
 def bingSearch(claim):
-     azure_pd = pd.DataFrame()
+    azure_pd = pd.DataFrame()
 
     azure_key = '34d4fdab594e46c2b8f4b497042a7260'
     search_url = "https://api.cognitive.microsoft.com/bing/v7.0/search"
