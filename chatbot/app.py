@@ -5,12 +5,17 @@ import tensorflow as tf
 from util import *
 from webscrape_helper import azureClaimSearch
 from twilio.twiml.messaging_response import MessagingResponse
+from twilio.twiml.voice_response import Dial, VoiceResponse, Say
+from twilio.rest import Client
 import time
 import random
 import pickle
 from REP import *
 import pandas as pd
 # from ..rep_model.REP import * 
+
+from werkzeug.contrib.cache import SimpleCache
+
 
 import os
 
@@ -20,11 +25,27 @@ os.environ['KMP_DUPLICATE_LIB_OK']='True'
 app = Flask(__name__)
 sess = tf.Session()
 
+#TWILIO API
+account_sid = 'ACd607c4799217f7d61cc2e38ce0302948'
+auth_token = 'f7fcf72fe1ba5169f53e4ba0f24ebcda'
+client = Client(account_sid, auth_token)
+
+# define cache
+cache = SimpleCache()
+
+def getCacheItem(claim):
+    return cache.get(claim)
+
+def storeCacheItem(claim, score, out_urls):
+    rv = {"urls": out_urls, "score": score, "articles": 100}
+    cache.set(claim, rv, timeout=5 * 60)
+
 # Getting Parameters
 def getParameters():
     parameters = []
     # parameters.append(request.args.get('male'))
     return parameters
+
 
 # Cross origin support
 def sendResponse(responseObj):
@@ -113,6 +134,11 @@ def runPredictions():
 def runPipeline(claim):
     start_time = time.time()
 
+    cache = getCacheItem(claim)
+    print(cache)
+    if cache is not None:
+        return cache['score'], cache['urls'], cache['articles']
+
     # webscrape
     azureClaimSearch(claim)
 
@@ -129,6 +155,7 @@ def runPipeline(claim):
     # calculate score using reputation
     score, out_urls  = returnOutput(df_ml)
 
+    # store 
     print("Total response time--- %s seconds ---" % (time.time() - start_time))
 
     # clean up for next search
@@ -137,6 +164,7 @@ def runPipeline(claim):
     os.remove("./bodies.csv")
     os.remove("./articles.csv")
 
+    storeCacheItem(claim, score, out_urls)
     return score, out_urls, number_of_articles
 
 # API for prediction
@@ -158,28 +186,28 @@ def index():
 @app.route('/test',  methods=['POST'])
 def test():
     # req = request.get_json(force=True)
-
     # Use this data in your application logic
-    from_number = request.form['From']
-    to_number = request.form['To']
-    body = request.form['Body']
+    # from_number = request.form['From']
+    # to_number = request.form['To']
+    # body = request.form['Body']
+    # print(request.form['Body'])
 
-    print(request.form['Body'])
 
-    # Start our TwiML response
-    resp = MessagingResponse()
+    call = client.calls.create(
+                        url='http://demo.twilio.com/docs/voice.xml',
+                        to='+18723561437',
+                        from_='+18882116027'
+                    )
 
-    resp.message("The Robots are coming! Head for the hills!")
-    print(resp)
+    print(call.sid)
 
-    return str(resp)
+    return str(call)
 
 
 def formatOutputUrls(urls):
     base = "Here are some relevant sources:"
     for url in urls:
-        # base += ' ' + url  + ' '
-        base += ' ' + url  + ' '
+        base += ' ' + url + ' '
 
     return base
 
@@ -188,16 +216,34 @@ def results():
     # build a request object
     #req = request.get_json(force=True)
 
-    # Use this data in your application logic
-    from_number = request.form['From']
-    to_number = request.form['To']
-    claim = request.form['Body']
+    claim = request.args.get('claim')
 
-    print(request.form['Body'])
+
+    # Use this data in your application logic
+    # from_number = request.form['From']
+    # to_number = request.form['To']
+    # claim = request.form['Body']
+
+    # print(request.form['Body'])
 
     # Start our TwiML response
-    resp = MessagingResponse()
+    # resp = MessagingResponse()
 
+    queries_df = pd.read_csv("queries.csv")
+
+    for index, query in queries_df.iterrows():
+        if claim == query['claim']:
+            
+            verdict = ""
+
+            if query['score'] > 0:
+                verdict = "VERIFIED"
+            else:
+                verdict = "FALSE"
+
+            sentence =  "Your search was: '" + claim + "' | We referenced " + str(number_of_articles)  + " articles and our verdict about your stance is " + verdict + " | Here are a few more articles "
+            print(sentence)
+            return sentence
     # run pipeline to get back score and relevant urls
     score, out_urls, number_of_articles = runPipeline(claim)
 
@@ -210,24 +256,28 @@ def results():
 
     sentence =  "Your search was: '" + claim + "' | We referenced " + str(number_of_articles)  + " articles and our verdict about your stance is " + verdict + " | " + formatted_urls
 
+    appended_query = pd.DataFrame({'claim': [claim], 'score': [score], 'article1_source':[article1['source'] ], 'article1_url':[ article1['url'] ], 'article2_source':[ article2['source'] ],'article2_url':[ article2['url'] ],'article3_source':[ article3['source'] ],'article3_url':[ article3['url'] ] })
+    queries_df.append(appended_query)
+    queries_df.to_csv('queries.csv')
+
     print(sentence)
     return sentence
 
     #test each article against the action from google dialogflow
-    if action == "echo":
-        response = {
-            "fulfillmentText": sentence,
-            "source" : "TruthAI",  
-        } 
-        return response
+    # if action == "echo":
+    #     response = {
+    #         "fulfillmentText": sentence,
+    #         "source" : "TruthAI",  
+    #     } 
+    #     return response
          
-    elif action == "webhook-intent":
-        response = {
-            "fulfillmentText": sentence,
-            "source" : "TruthAI",  
-        }
-        # return a fulfillment response
-        return response
+    # elif action == "webhook-intent":
+    #     response = {
+    #         "fulfillmentText": sentence,
+    #         "source" : "TruthAI",  
+    #     }
+    #     # return a fulfillment response
+    #     return response
 
 
 # create a route for webhook
@@ -235,7 +285,7 @@ def results():
 @app.route('/webhook', methods=['GET', 'POST'])
 def webhook():
     # return response
-
+    
     resp = MessagingResponse()
     # Use this data in your application logic
     from_number = request.form['From']
@@ -243,7 +293,7 @@ def webhook():
     claim = request.form['Body']
 
     resp.message("your search was: " + claim)
-    resp.message("we are searching the web to find you the truth. Give us a few seconds")
+    resp.message("we are searching the web to find you the truh. Give us a few seconds")
     
     sentence = results()
 
