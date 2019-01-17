@@ -5,6 +5,7 @@ import tensorflow as tf
 from util import *
 from webscrape_helper import azureClaimSearch
 from twilio.twiml.messaging_response import MessagingResponse
+from twilio.twiml.voice_response import Dial, VoiceResponse, Say
 import time
 import random
 import pickle
@@ -186,10 +187,10 @@ def test():
 
     print(request.form['Body'])
 
-    # Start our TwiML response
-    resp = MessagingResponse()
 
-    resp.message("The Robots are coming! Head for the hills!")
+    response = VoiceResponse()
+    response.dial('872-356-1437')
+    response.say('Your search was Trump Secured Wall Funding')
     print(resp)
 
     return str(resp)
@@ -301,7 +302,7 @@ def results():
 @app.route('/webhook', methods=['GET', 'POST'])
 def webhook():
     # return response
-
+    
     resp = MessagingResponse()
     # Use this data in your application logic
     from_number = request.form['From']
