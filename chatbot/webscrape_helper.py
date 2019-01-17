@@ -129,6 +129,7 @@ def webscrapeMain(evidence, mode):
 
     getArticles(kws)
     # print(bodies_df)
+    print(global_df)
     global_df = global_df.reset_index(drop=True)
     global_df.to_csv('articles.csv')
     bodies_df.to_csv('bodies.csv')

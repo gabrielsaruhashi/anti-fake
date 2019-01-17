@@ -113,7 +113,6 @@ def runPredictions():
     print("Loading checkpoint")
     load_model(sess)
 
-    
     '''PREDICTION'''
     print("Now running predictions...")
 
@@ -153,11 +152,9 @@ def predict():
     df_stances = pd.read_csv("pred.csv")
     df_ml = pd.concat([df_articles, df_stances], axis=1)
 
-
-    # score = 0
-    len(df_articles)
     # calculate score using reputation
-    score = returnOutput(df_ml)
+    score, out_urls  = returnOutput(df_ml)
+    print(out_urls)
 
     print("Total response time--- %s seconds ---" % (time.time() - start_time))
 
@@ -167,7 +164,7 @@ def predict():
     os.remove("articles.csv")
 
     return sendResponse({"claim": claim, "score": score,  \
-    "sources": ['https://www.washingtonpost.com/news/powerpost/wp/2018/01/11/joe-arpaio-is-back-and-brought-his-undying-obama-birther-theory-with-him/?utm_term=.3c88c56fee34']})
+    "sources": out_urls})
 
 
 # default route
@@ -212,22 +209,8 @@ def results():
     # Start our TwiML response
     resp = MessagingResponse()
 
-
-
     #PREDICT   
     start_time = time.time()
-    # fectch action from json
-    #action = req.get('queryResult').get('intent').get('displayName')
-    #claim = ""
-    #command = ""
-    #set claim based on the 
-    # if action == "echo":
-    #     claim = req.get('queryResult').get('parameters').get('echoText')
-    # if action == "webhook-intent":
-    #claim = req.get('queryResult').get('parameters').get('claim')
-    #command = req.get('queryResult').get('parameters').get('Command')
-    #print(claim)
-    #print(command)
 
     # webscrape
     azureClaimSearch(claim)

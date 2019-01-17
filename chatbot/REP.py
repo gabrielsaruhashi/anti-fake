@@ -10,10 +10,11 @@ DEFAULT_FILEPATH = 'rep_model/default_rep.csv'
 fieldnames = ['source', 'reputation', 'size', 'articles']
 
 class opinion:
-    def __init__(self, sourceName, articleId, stance):
+    def __init__(self, sourceName, articleId, stance, url):
         self.sourceName = sourceName.lower()
         self.articleId = articleId
         self.stance = stance
+        self.url = url
 
 class source:
     """articles #list of strings
@@ -52,16 +53,17 @@ def returnOutput(mlOut):
         articleId = row['Body ID']
         # articleId = row['Body ID']
         sourceName = row['source']
-        op = opinion(sourceName, articleId, stance)
+        url = row['url']
+        op = opinion(sourceName, articleId, stance, url)
         if index == 0:
             opinions = [op]
         else:
             opinions.append(op)
-    stance = avgStance(opinions)
+    stance, out_urls = avgStance(opinions)
     updateRep(opinions)
     writeToDisk(FILEPATH)
     
-    return stance
+    return stance, out_urls
 
 def avgStance(opinions):
     """takes a list of opinions and calculates the final stance
@@ -71,8 +73,8 @@ def avgStance(opinions):
     finalStance = 0
     most_pos = 0
     most_neg = 0
-    # relevant_pos = ""
-    # relevant_neg = ""
+    url_pos = []
+    url_neg = []
     for op in opinions:
    
         #agree
@@ -81,14 +83,14 @@ def avgStance(opinions):
                 finalStance -= globals.sources.get(op.sourceName).reputation
                 if most_pos < globals.sources.get(op.sourceName).reputation:
                     most_pos = globals.sources.get(op.sourceName).reputation
-                    # relevant_pos = op.article_id
+                    url_neg.append(op.url)
         #disagree
         elif op.stance == 1:
             if op.sourceName in globals.sources:
                 finalStance += globals.sources.get(op.sourceName).reputation
                 if most_neg > globals.sources.get(op.sourceName).reputation:
                     most_neg = op.article_id
-                    # relevant_neg = op.article_id
+                    url_pos.append(op.url)
                     
         # discuss
         elif op.stance == 2:
@@ -96,8 +98,12 @@ def avgStance(opinions):
                 finalStance += globals.sources.get(op.sourceName).reputation/4
     finalStance = finalStance/len(opinions)
 
+    if finalStance > 0:
+        out_urls = url_pos
+    else:
+        out_urls = url_neg
     # filter relevant articless
-    return finalStance
+    return finalStance, out_urls
 
 def compareStance(opinion, opinions):
     """compares an article with other articles to determine its reputability
@@ -130,11 +136,8 @@ def updateRep(opinions):
 
 def loadReputations(filepath):
     with open(filepath) as csvfile:
-        # fieldnames = ['source', 'reputation', 'size', 'articles']
         reader = csv.DictReader(csvfile, fieldnames = fieldnames)
         next(reader, None)  # skip the headers
-        # TODO: fix this ignore first row
-        # isHead = True
         for row in reader:   
             globals.sources[row['source']] = source(row['source'], row['reputation'], row['size'], row['articles'])
             # globals.sources[row['source']].size = 100 #Only for defaults
