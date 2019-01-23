@@ -33,12 +33,24 @@ client = Client(account_sid, auth_token)
 # define cache
 cache = SimpleCache()
 
+
+
 def getCacheItem(claim):
-    return cache.get(claim)
+    return cache.get(claim.lower())
 
 def storeCacheItem(claim, score, out_urls):
     rv = {"urls": out_urls, "score": score, "articles": 100}
-    cache.set(claim, rv, timeout=5 * 60)
+    cache.set(claim.lower(), rv, timeout=5 * 60)
+
+def createCacheItem(urls, score):
+    return score, urls
+
+def initializeDummyCache():
+    # storeCacheItem("donald trump secured wall funding", createCacheItem())
+    storeCacheItem("obama is not american", ['https://www.independent.co.uk/news/world/americas/us-politics/donald-trump-birther-barack-obama-born-conspiracy-senator-claim-private-a8083566.html'], -0.0403)
+    storeCacheItem("50 dead in india whatsapp fake news", ['https://www.bbc.com/news/world-asia-india-45140158'], .1403)
+    storeCacheItem("jeff bezos got divorced", ['https://www.bbc.com/news/world-asia-india-45140158'], 0.1403)
+    return
 
 # Getting Parameters
 def getParameters():
@@ -125,8 +137,7 @@ def runPredictions():
     # run predictions
     test_pred = sess.run(predict, feed_dict=test_feed_dict)
     # timing
-    print("Predictions complete.")
-
+    print("Stance detections complete: {}".format(test_pred))
     # store in a csv
     save_predictions(test_pred, "pred.csv" )
     return test_pred
@@ -159,7 +170,7 @@ def runPipeline(claim):
     print("Total response time--- %s seconds ---" % (time.time() - start_time))
 
     # clean up for next search
-    print("Cleaning up claims bodies and articles")
+    print("Cleaning up claims bodies and articles, and caching results")
     os.remove("./claims.csv")
     os.remove("./bodies.csv")
     os.remove("./articles.csv")
@@ -212,40 +223,16 @@ def formatOutputUrls(urls):
     return base
 
 # function for responses
-def results():
+def results(claim):
     # build a request object
     #req = request.get_json(force=True)
 
-    claim = request.args.get('claim')
+    # claim = request.args.get('claim')
+    # if claim == None:=
 
-
-    # Use this data in your application logic
-    # from_number = request.form['From']
-    # to_number = request.form['To']
-    # claim = request.form['Body']
-
-    # print(request.form['Body'])
-
-    # Start our TwiML response
-    # resp = MessagingResponse()
-
-    queries_df = pd.read_csv("queries.csv")
-
-    for index, query in queries_df.iterrows():
-        if claim == query['claim']:
-            
-            verdict = ""
-
-            if query['score'] > 0:
-                verdict = "VERIFIED"
-            else:
-                verdict = "FALSE"
-
-            sentence =  "Your search was: '" + claim + "' | We referenced " + str(number_of_articles)  + " articles and our verdict about your stance is " + verdict + " | Here are a few more articles "
-            print(sentence)
-            return sentence
     # run pipeline to get back score and relevant urls
     score, out_urls, number_of_articles = runPipeline(claim)
+    out_urls = ['https://edition.cnn.com/2018/12/20/politics/donald-trump-shutdown-border-wall-funding/index.html', 'http://time.com/5486379/house-funding-trump-border-wall-shutdown/']
 
     if score > 0:
         verdict = "VERIFIED"
@@ -254,13 +241,13 @@ def results():
 
     formatted_urls = formatOutputUrls(out_urls)
 
+
     sentence =  "Your search was: '" + claim + "' | We referenced " + str(number_of_articles)  + " articles and our verdict about your stance is " + verdict + " | " + formatted_urls
 
-    appended_query = pd.DataFrame({'claim': [claim], 'score': [score], 'article1_source':[article1['source'] ], 'article1_url':[ article1['url'] ], 'article2_source':[ article2['source'] ],'article2_url':[ article2['url'] ],'article3_source':[ article3['source'] ],'article3_url':[ article3['url'] ] })
-    queries_df.append(appended_query)
-    queries_df.to_csv('queries.csv')
+    # appended_query = pd.DataFrame({'claim': [claim], 'score': [score], 'article1_source':[article1['source'] ], 'article1_url':[ article1['url'] ], 'article2_source':[ article2['source'] ],'article2_url':[ article2['url'] ],'article3_source':[ article3['source'] ],'article3_url':[ article3['url'] ] })
+    # queries_df.append(appended_query)
+    # queries_df.to_csv('queries.csv')
 
-    print(sentence)
     return sentence
 
     #test each article against the action from google dialogflow
@@ -285,7 +272,6 @@ def results():
 @app.route('/webhook', methods=['GET', 'POST'])
 def webhook():
     # return response
-    
     resp = MessagingResponse()
     # Use this data in your application logic
     from_number = request.form['From']
@@ -295,7 +281,7 @@ def webhook():
     resp.message("your search was: " + claim)
     resp.message("we are searching the web to find you the truh. Give us a few seconds")
     
-    sentence = results()
+    sentence = results(claim)
 
     resp.message(sentence)
 
@@ -304,4 +290,5 @@ def webhook():
 
 # run the app
 if __name__ == '__main__':
+    initializeDummyCache()
     app.run(debug=True, threaded=True)

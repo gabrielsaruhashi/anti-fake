@@ -93,15 +93,26 @@ def avgStance(opinions):
                     url_pos.append(op.url)
                     
         # discuss
-        elif op.stance == 2:
+        # elif op.stance == 2:
+    #     if op.sourceName in globals.sources:
+        #         finalStance += globals.sources.get(op.sourceName).reputation/4
+
+        # unrelated -- not many articles about the matter
+        elif op.stance == 3:
             if op.sourceName in globals.sources:
-                finalStance += globals.sources.get(op.sourceName).reputation/4
+                finalStance -= globals.sources.get(op.sourceName).reputation/4
+        
+    if finalStance == 0:
+        return -1, []
+    
     finalStance = finalStance/len(opinions)
 
     if finalStance > 0:
         out_urls = url_pos
+        print(out_urls)
     else:
         out_urls = url_neg
+        print(out_urls)
     # filter relevant articless
     return finalStance, out_urls
 

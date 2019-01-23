@@ -64,8 +64,8 @@ def getArticles(keywords):
         # keywordsLoc = "title",
         # ignoreKeywords = "SpaceX",
         # sourceUri = "nytimes.com")
-    q.setRequestedResult(RequestArticlesInfo(sortBy="sourceImportance"))
-    res = q.execQuery(er, sortBy="sourceImportance", maxItems = 50)
+    q.setRequestedResult(RequestArticlesInfo(sortBy="rel"))
+    res = q.execQuery(er, sortBy="rel", maxItems = 25)
     local_df = pd.DataFrame()
     local_body_df = pd.DataFrame()
     index = 0
@@ -128,7 +128,6 @@ def webscrapeMain(evidence, mode):
     print("The keywords are: {}".format(kws))
 
     getArticles(kws)
-    # print(bodies_df)
     print(global_df)
     global_df = global_df.reset_index(drop=True)
     global_df.to_csv('articles.csv')
@@ -172,30 +171,16 @@ def bingSearch(claim):
         break
    
 def azureClaimSearch(claim):
+    print("Searching the web for claim: {}".format(claim))
     start_time = time.time()
     # tokenize string
     tokens = claim.split()
     tokens = [word for word in tokens if word.lower() not in stop_words]
 
     webscrapeMain(tokens, CLAIM_CHECK)
-    # azure_pd = pd.DataFrame()
-
-    # azure_key = '34d4fdab594e46c2b8f4b497042a7260'
-    # search_url = "https://api.cognitive.microsoft.com/bing/v7.0/search"
-
-    # headers = {"Ocp-Apim-Subscription-Key" : azure_key}
-    # params  = {"q": claim, "textDecorations":True, "textFormat":"HTML"}
-    # response = requests.get(search_url, headers=headers, params=params)
-    # response.raise_for_status()
-    # search_results = response.json()
-    
-    
-    # for article in search_results["webPages"]["value"]:
-    #     webscrapeMain(article['url'])
-    #     # print(json.dumps(article, indent=4))
-    #     break
     # generate csv claim to run against the model
     generateClaimCSV(claim)
 
     print("Webscraping time--- %s seconds ---" % (time.time() - start_time))
 
+# azureClaimSearch("Trump secured funding wall")
