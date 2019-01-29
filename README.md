@@ -22,8 +22,9 @@ If a user is able to even contextify a claim before sharing it, we can significa
 ## The solution
 We built a native AI chatbot for WhatsApp and Google Assistant that identifies/shares relevant sources to contextify to a user’s “argument” or possibly “fake news claim” and seeks to report how relevant those claims really are to the sources. We have built and integrated the first truly native experience for fact-checking between those platforms. All a user must do is forward (copy) their claim to either our WhatsApp bot or Google Assistant app, and instantly the bot returns “claim and source corroboration report/score” along with a list of relevant sources to contextify a claim.
 
-## Engineering (author: @gabrielsaruhashi)
- 
+
+## Backend Engineering (author: @gabrielsaruhashi)
+
 ### Webscraping
 **Input**
 Claim (“Donald trump secured wall funding”)
